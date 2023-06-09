@@ -7,22 +7,20 @@ docker_run = docker run --rm --mount type=bind,source="$(shell pwd)/",target=/ap
 .PHONY: help
 help:
 	@echo "Available targets:"
-	@echo "build         Build docker image"
-	@echo "test          Run tests"
-	@echo "shell  	 Start Container and open an interactive shell"
+	@echo "build-docker-image		Build docker image"
+	@echo "run-tests			Run tests"
+	@echo "start-shell			Start Container and open an interactive shell"
+
 
 .PHONY: build-docker-image
 build-docker-image: ## Build the docker image and install python dependencies
-	docker build --no-cache -t $(docker_image_name) .
-	$(docker_run) pipenv install --dev
+	docker build --build-arg ENVIRONMENT=dev -t $(docker_image_name) .
 
 
-.PHONY: test
-test:
+.PHONY: run-tests
+run-tests:
 	$(docker_run) pipenv run test
 
-.PHONY: shell
-shell:
+.PHONY: start-shell
+start-shell:
 	docker run --rm -it --mount type=bind,source="$(shell pwd)/",target=/$(target_loc)/ $(docker_image_name) /bin/bash
-
-.PHONY: instal-python-module
