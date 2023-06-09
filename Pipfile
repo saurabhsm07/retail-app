@@ -22,7 +22,6 @@ python_version = "3.8"
 tidy = "scripts/tidy.sh"
 lint = "scripts/lint.sh"
 test = "pytest --cov=src"
-fetch_data = "scripts/fetch_data.sh"
 
 [pipenv]
 allow_prereleases = true
