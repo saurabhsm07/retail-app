@@ -1,0 +1,22 @@
+A product is identified by a SKU (stock-keeping unit)
+Customers place orders
+    - An order is identified by an order reference and comprises multiple order lines , where each line has a SKU and a quantity . For example:
+         •  10 units of RED-CHAIR
+         •  1 unit of TASTELESS-LAMP
+    - order(order_id, order_line_1, order_line_2,..order_line_n)
+    - order_line(order_ref_id, SKU, quantity)
+
+The purchasing department orders small batches of stock.
+    - A batch of stock has a unique ID called a reference , a SKU , and a quantity
+    - batch(batch_id, SKU, quantity)
+
+ TASK: We need to allocate order lines to batches .
+
+ CONDITIONS:
+    - When we allocate x units of stock to a batch, the available quantity is reduced by x
+    - We can’t allocate to a batch if the available quantity is less than the quantity of the order line
+    - We can’t allocate the same line twice. For example:
+        •  We have a batch of 10 BLUE-VASE, and we allocate an order line for 2 BLUE-VASE.
+        •  If we allocate the order line again to the same batch, the batch should still have an available quantity of 8.
+    - We should prefer warehouse stock over shipping stock
+    - We should prefer batches with shorter ETA among shipping stock
