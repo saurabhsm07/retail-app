@@ -20,3 +20,10 @@ The purchasing department orders small batches of stock.
         •  If we allocate the order line again to the same batch, the batch should still have an available quantity of 8.
     - We should prefer warehouse stock over shipping stock
     - We should prefer batches with shorter ETA among shipping stock
+
+Personal notes:
+    - for allocation we will need an allocate method
+    - for deallocating we will need a deallocate method
+    - to maintain history of allocations we will need a set / queue
+    - Assumption: warehouse stock will not have an ETA date, only shipment stock will
+    - we will need to host an array of batches ? how do i do that
