@@ -1,6 +1,6 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
-from typing import List
+from typing import List, Set
 
 from models.order_line import OrderLine
 
@@ -9,22 +9,20 @@ from models.order_line import OrderLine
 class Batch:
     id: int
     sku: str
-    available_quantity: int
+    quantity: int
     eta: datetime
-    _allocations = set()
+    _allocations: Set[OrderLine] = field(init=False, default_factory=set)
 
     def allocate(self, order_line: OrderLine):
         try:
             if self.can_allocate(order_line):
                 self._allocations.add(order_line)
-                self.available_quantity -= order_line.quantity
         except Exception as e:
             raise Exception('Order allocation failed: ' + str(e))
 
     def deallocate(self, order_line):
         if order_line in self._allocations:
             self._allocations.remove(order_line)
-            self.available_quantity += order_line.quantity
             return True
 
         return False
@@ -35,5 +33,10 @@ class Batch:
 
         return False
 
-    def get_allocations(self):
-        return self._allocations
+    @property
+    def available_quantity(self):
+        return self.quantity - self.allocated_quantity
+
+    @property
+    def allocated_quantity(self):
+        return sum(order_line.quantity for order_line in self._allocations)
