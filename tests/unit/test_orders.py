@@ -63,7 +63,7 @@ def test_can_deallocate_allocated_order_line():
     assert batch.deallocate(order_line) is True
 
 
-def test_de_allocation_increments_quantity_by_deallocated_quantity():
+def test_de_allocation_increments_batch_available_quantity_by_deallocated_quantity():
     batch = Batch(id=1, sku='RED CHAIRS', quantity=25, eta=datetime.today())
     order_line = OrderLine(order_id=1, sku='RED CHAIRS', quantity=2)
     batch.allocate(order_line)
@@ -71,6 +71,16 @@ def test_de_allocation_increments_quantity_by_deallocated_quantity():
     batch.deallocate(order_line)
     new_batch_available_qty = batch.available_quantity
     assert (prev_batch_available_qty + order_line.quantity) == new_batch_available_qty
+
+
+def test_de_allocation_decrements_batch_allocated_quantity_by_deallocated_quantity():
+    batch = Batch(id=1, sku='RED CHAIRS', quantity=25, eta=datetime.today())
+    order_line = OrderLine(order_id=1, sku='RED CHAIRS', quantity=2)
+    batch.allocate(order_line)
+    prev_batch_allocated_qty = batch.allocated_quantity
+    batch.deallocate(order_line)
+    new_batch_allocated_qty = batch.allocated_quantity
+    assert (prev_batch_allocated_qty - order_line.quantity) == new_batch_allocated_qty
 
 
 def test_prefer_allocation_to_warehouse_over_shipment():
