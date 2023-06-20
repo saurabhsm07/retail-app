@@ -1,8 +1,12 @@
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import List, Set
+from typing import List, Set, Tuple, Dict
 
 from models.order_line import OrderLine
+
+
+class OutOfStock(Exception):
+    pass
 
 
 @dataclass()
@@ -49,3 +53,31 @@ class Batch:
 
     def __hash__(self):
         return hash(self.id)
+
+    def __gt__(self, other):
+        if self.eta is None:
+            return False
+        if other.eta is None:
+            return True
+        return self.eta > other.eta
+
+
+def allocate(order_line: OrderLine, batches: List[Batch]) -> Dict[str, int]:
+    """
+    method selects most suitable batch from a list of batches for a particular order line,
+    raises OutOfStock exception if order cannot be fulfilled
+    :param order_line:
+    :param batches:
+    :return: dict of order_id, batch_id (batch this particular order line is allocated to)
+    """
+    most_suitable_batch = None
+    for batch in sorted(batches):
+        if batch.can_allocate(order_line):
+            most_suitable_batch = batch
+            break
+
+    if most_suitable_batch is not None:
+        most_suitable_batch.allocate(order_line)
+        return {'order_id': order_line.order_id, 'batch_id': most_suitable_batch.id}
+
+    raise OutOfStock(f'Product {order_line.sku} of quantity {order_line.quantity} unavailable')

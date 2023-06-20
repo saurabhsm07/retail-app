@@ -27,12 +27,17 @@ Personal notes:
     - for deallocating we will need a deallocate method - DONE
     - to maintain history of allocations we will need a set / queue - DONE
     - Assumption: warehouse stock will not have an ETA date, only shipment stock will
-    - we will need to host an array of batches ? how do i do that
+    - we will need to host an array of batches ? how do i do that - DONE (see 2nd point learnings)
     -
 
-Findings:
+Learnings:
    - order_line is not an entity it is a value object (it does not have a p.k that will differentiate it):
      An order line is uniquely identified by its order ID, SKU, and quantity (part of a single order ; see K.T section);
      if we change one of those values, we now have a new line.
      any object that is identified only by its data and doesn't have a long-lived identity.
      Batch is an entity (has p.k) Order line is a value object (Does not have p.k)
+
+   - Domain Service operations that don’t have a natural home in an entity or value object.
+     the final allocate(orderLine, [Batch]) method that allocates an order line, given a set of batches, sounds a lot like a function
+     and we can take advantage of the fact that Python is a multiparadigm language and just make it a function.
+
