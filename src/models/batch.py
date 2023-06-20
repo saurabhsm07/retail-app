@@ -40,3 +40,12 @@ class Batch:
     @property
     def allocated_quantity(self):
         return sum(order_line.quantity for order_line in self._allocations)
+
+    def __eq__(self, other):
+        if isinstance(other, Batch):
+            if self.id == other.id:
+                return True
+        return False
+
+    def __hash__(self):
+        return hash(self.id)
