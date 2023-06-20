@@ -1,7 +1,7 @@
 import pytest
 from datetime import datetime, timedelta
 
-from models.batch import Batch
+from models.batch import Batch, OutOfStock, allocate
 from models.order_line import OrderLine
 
 
@@ -84,8 +84,36 @@ def test_de_allocation_decrements_batch_allocated_quantity_by_deallocated_quanti
 
 
 def test_prefer_allocation_to_warehouse_over_shipment():
-    pytest.fail('todo')
+    warehouse_stock = Batch(id=1, sku='chinese tea-pot', quantity=90, eta=None)
+    shipment_stock = Batch(id=2, sku='chinese tea-pot', quantity=90, eta=datetime.today() + timedelta(days=10))
+    line = OrderLine(order_id=1, sku='chinese tea-pot', quantity=5)
+    result = allocate(line, [shipment_stock, warehouse_stock])
+    assert result['batch_id'] == 1 \
+           and warehouse_stock.available_quantity == 85 and warehouse_stock.allocated_quantity == 5 \
+           and shipment_stock.available_quantity == 90
 
 
 def test_allocation_to_batch_with_minimum_eta():
-    pytest.fail('todo')
+    shipment_earliest_eta = Batch(id=1, sku='chinese tea-pot', quantity=100, eta=datetime.today() + timedelta(days=10))
+    shipment_medium_eta = Batch(id=2, sku='chinese tea-pot', quantity=100, eta=datetime.today() + timedelta(days=20))
+    shipment_latest_eta = Batch(id=3, sku='chinese tea-pot', quantity=100, eta=datetime.today() + timedelta(days=30))
+    line = OrderLine(order_id=1, sku='chinese tea-pot', quantity=5)
+    result = allocate(line, [shipment_earliest_eta, shipment_medium_eta, shipment_latest_eta])
+    assert result['batch_id'] == 1 \
+           and shipment_earliest_eta.available_quantity == 95 and shipment_earliest_eta.allocated_quantity == 5 \
+           and shipment_latest_eta.available_quantity == 100 and shipment_medium_eta.available_quantity == 100
+
+
+def test_allocate_raises_out_of_stock_exception_when_order_line_cannot_be_allocated():
+    cannot_allocated_batches = [
+        Batch(id=1, sku='chinese tea-pot', quantity=100, eta=datetime.today() + timedelta(days=10)),
+        Batch(id=2, sku='chinese tea-pot', quantity=100, eta=datetime.today() + timedelta(days=20)),
+        Batch(id=3, sku='Japanese tea-pot', quantity=1000, eta=datetime.today() + timedelta(days=30))]
+    line = OrderLine(order_id=1, sku='chinese tea-pot', quantity=100)
+
+    empty_batch_1_allocation = allocate(line, cannot_allocated_batches)
+
+    empty_batch_2_allocation = allocate(line, cannot_allocated_batches)
+
+    with pytest.raises(OutOfStock):
+        out_stock_exception_allocation = allocate(line, cannot_allocated_batches)
