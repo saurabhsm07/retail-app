@@ -1,1 +1,5 @@
-1.currently tests are tightly coupled for object creation related tasks, unable to run them independently. Need to decouple those
+1.currently tests are tightly coupled for object creation related tasks, unable to run them independently. Need to decouple those -
+SOLUTION: Fixed with default_factory from dataclasses
+
+2. Currently placing orm as as a single module in src folder
+
