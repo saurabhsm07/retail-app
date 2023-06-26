@@ -1,0 +1,8 @@
+Learnings:
+Model-View-Template / Model-View-Controller (MVC) - the aim is to keep the layers separate, and to have each layer depend only on the one below it.
+                                                        i:e PRESENTATION LAYER -> BUSINESS LOGIC -> DATABASE
+Onion Architecture - our model as the core and dependencies flowing inward to it;
+                         i:e PRESENTATION LAYER -> BUSINESS LOGIC (Domain Model)<- DATABASE
+
+In the normal ORM approach Model inherits from the ORM classes be it SQLAlchemy (declarative pattern) or Django we want the ORM to be dependent on our Domain Model
+
