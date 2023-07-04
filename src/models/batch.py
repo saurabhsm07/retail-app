@@ -11,7 +11,7 @@ class OutOfStock(Exception):
 
 @dataclass()
 class Batch:
-    id: int
+    reference: str
     sku: str
     quantity: int
     eta: datetime
@@ -47,12 +47,12 @@ class Batch:
 
     def __eq__(self, other):
         if isinstance(other, Batch):
-            if self.id == other.id:
+            if self.reference == other.reference:
                 return True
         return False
 
     def __hash__(self):
-        return hash(self.id)
+        return hash(self.reference)
 
     def __gt__(self, other):
         if self.eta is None:
@@ -68,7 +68,7 @@ def allocate(order_line: OrderLine, batches: List[Batch]) -> Dict[str, int]:
     raises OutOfStock exception if order cannot be fulfilled
     :param order_line:
     :param batches:
-    :return: dict of order_id, batch_id (batch this particular order line is allocated to)
+    :return: dict of order_id, batch_ref (batch this particular order line is allocated to)
     """
     most_suitable_batch = None
     for batch in sorted(batches):
@@ -78,6 +78,6 @@ def allocate(order_line: OrderLine, batches: List[Batch]) -> Dict[str, int]:
 
     if most_suitable_batch is not None:
         most_suitable_batch.allocate(order_line)
-        return {'order_id': order_line.order_id, 'batch_id': most_suitable_batch.id}
+        return {'order_id': order_line.order_id, 'batch_ref': most_suitable_batch.reference}
 
     raise OutOfStock(f'Product {order_line.sku} of quantity {order_line.quantity} unavailable')
