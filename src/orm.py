@@ -1,33 +1,48 @@
 from typing import List
 
-from sqlalchemy import MetaData, Table, Column, Integer, String
-from sqlalchemy.orm import mapper, relationship
+from sqlalchemy import Table, Column, Integer, String, Date, ForeignKey
+from sqlalchemy.orm import relationship, registry
+from models import Batch
+from models import OrderLine
 
-from models.batch import Batch
-from models.order_line import OrderLine
-
-metadata = MetaData()
+mapper_registry = registry()
 
 order_lines = Table(
     "order_lines",
-    metadata,
-    Column("id", Integer, primary_key=True, autoincrement=True),
-    Column("sku", String(255)),
-    Column("qty", Integer, nullable=False),
-    Column("order_id", String(255)),
-)
-
-batch = Table(
-    "batch",
-    metadata,
+    mapper_registry.metadata,
     Column("id", Integer, primary_key=True, autoincrement=True),
     Column("sku", String(255)),
     Column("quantity", Integer, nullable=False),
-    Column("eta", String(255)),
-    Column("_allocations", List[OrderLine]),
+    Column("order_id", String(255)),
+)
+
+batches = Table(
+    "batches",
+    mapper_registry.metadata,
+    Column("id", Integer, primary_key=True, autoincrement=True),
+    Column("reference", String(255)),
+    Column("sku", String(255)),
+    Column("quantity", Integer, nullable=False),
+    Column("eta", Date, nullable=True)
+)
+
+allocations = Table(
+    "allocations",
+    mapper_registry.metadata,
+    Column("id", Integer, primary_key=True, autoincrement=True),
+    Column("order_line_id", ForeignKey("order_lines.id")),
+    Column("batch_id", ForeignKey("batches.id")),
 )
 
 
 def start_mappers():
-    order_lines_mapper = mapper(OrderLine, order_lines)
-    batch_mapper = mapper(Batch, batch)
+    order_lines_mapper = mapper_registry.map_imperatively(OrderLine, order_lines)
+    mapper_registry.map_imperatively(
+        Batch,
+        batches,
+        properties={
+            "_allocations": relationship(
+                order_lines_mapper, secondary=allocations, collection_class=set,
+            )
+        }
+    )
