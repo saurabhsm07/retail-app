@@ -13,7 +13,7 @@ requires-python = ">=3.7"
 "Bug Tracker" = "https://github.com/saurabhsm07/retail-app/issues"
 
 [tool.pytest.ini_options]
-pythonpath = "src"
+pythonpath = "src" #sets the PYTHONPATH environment variable to include the "src" directory
 addopts = [
     "--import-mode=importlib",
 ]

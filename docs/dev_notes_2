@@ -18,3 +18,6 @@ moved session specific fixtures to conftest py file
 [tool.pytest.ini_options] pythonpath = "src": This option sets the PYTHONPATH environment variable to include the "src" directory. This is useful if your source code is located in a separate directory from your tests and you want to ensure that pytest can import the necessary modules from the "src" directory
 
 ** the book being followed has only 1 repository class implemented over abstract repo, I have created 1 per data model based entities
+** currently repository and orm tests do not work correctly when I rum complete test suite because records inserted by 1 test are accessible to the other test:
+   this is because the session object is available for the whole session of test suite execution
+   I am manually deleting tables created before running each unit test for now
