@@ -1,27 +1,14 @@
-import pytest
-from sqlalchemy import create_engine, text
-from sqlalchemy.orm import sessionmaker, clear_mappers
-from orm import start_mappers, mapper_registry
+from sqlalchemy import text
 from models import OrderLine
-
-
-@pytest.fixture(scope="session")
-def session():
-    engine = create_engine('sqlite:///:memory:')
-    mapper_registry.metadata.create_all(engine)
-    start_mappers()
-    session = sessionmaker(bind=engine)()
-    yield session
-    clear_mappers()
 
 
 def test_orderline_mapper_can_load_lines(session):  # (1)
     session.execute(
         text('INSERT INTO order_lines (order_id, sku, quantity) '
-        'VALUES '
-        '("order1", "RED-CHAIR", 12), '
-        '("order1", "RED-TABLE", 13),'
-        '("order2", "BLUE-LIPSTICK", 14)')
+             'VALUES '
+             '("order1", "RED-CHAIR", 12), '
+             '("order1", "RED-TABLE", 13),'
+             '("order2", "BLUE-LIPSTICK", 14)')
     )
     expected = [
         OrderLine("order1", "RED-CHAIR", 12),
