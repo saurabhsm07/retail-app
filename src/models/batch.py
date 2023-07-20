@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import List, Set, Tuple, Dict
+from typing import List, Set, Tuple, Dict, Optional
 
 from models.order_line import OrderLine
 
@@ -9,13 +9,17 @@ class OutOfStock(Exception):
     pass
 
 
-@dataclass()
 class Batch:
-    reference: str
-    sku: str
-    quantity: int
-    eta: datetime
-    _allocations: Set[OrderLine] = field(init=False, default_factory=set)
+
+    def __init__(self, reference: str,
+                 sku: str,
+                 quantity: int,
+                 eta: Optional[datetime]):
+        self.reference = reference
+        self.sku = sku
+        self.quantity = quantity
+        self.eta = eta
+        self._allocations = set()
 
     def allocate(self, order_line: OrderLine):
         try:
