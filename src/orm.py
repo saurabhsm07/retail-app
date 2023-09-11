@@ -2,8 +2,8 @@ from typing import List
 
 from sqlalchemy import Table, Column, Integer, String, Date, ForeignKey
 from sqlalchemy.orm import relationship, registry
-from models import Batch
-from models import OrderLine
+
+from models import Batch, OrderLine
 
 mapper_registry = registry()
 
