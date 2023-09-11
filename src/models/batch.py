@@ -36,7 +36,8 @@ class Batch:
         return False
 
     def can_allocate(self, order_line: OrderLine) -> bool:
-        if order_line.sku == self.sku and order_line.quantity <= self.available_quantity and order_line not in self._allocations:
+        if (order_line.sku == self.sku and order_line.quantity <= self.available_quantity
+                and order_line not in self._allocations):
             return True
 
         return False
@@ -66,7 +67,7 @@ class Batch:
         return self.eta > other.eta
 
 
-def allocate(order_line: OrderLine, batches: List[Batch]) -> Dict[str, int]:
+def allocate(order_line: OrderLine, batches: List[Batch]) -> Dict[str, str]:
     """
     method selects most suitable batch from a list of batches for a particular order line,
     raises OutOfStock exception if order cannot be fulfilled

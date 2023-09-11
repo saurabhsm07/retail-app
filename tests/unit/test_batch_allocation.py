@@ -50,8 +50,8 @@ def test_cannot_allocate_same_order_multiple_times():
 
 
 def test_cannot_deallocate_unallocated_order_line():
-    batch = Batch(reference='batch_1_ref', sku='mrf tire', quantity=25, eta=datetime.today())
-    order_line = OrderLine(order_id=1, sku='mrf tire', quantity=2)
+    batch = Batch(reference='batch_1_ref', sku='mrf_tire', quantity=25, eta=datetime.today())
+    order_line = OrderLine(order_id=1, sku='mrf_tire', quantity=2)
 
     assert batch.deallocate(order_line) is False
 
@@ -85,7 +85,8 @@ def test_de_allocation_decrements_batch_allocated_quantity_by_deallocated_quanti
 
 def test_prefer_allocation_to_warehouse_over_shipment():
     warehouse_stock = Batch(reference='batch_1_ref', sku='chinese tea-pot', quantity=90, eta=None)
-    shipment_stock = Batch(reference='batch_2_ref', sku='chinese tea-pot', quantity=90, eta=datetime.today() + timedelta(days=10))
+    shipment_stock = Batch(reference='batch_2_ref', sku='chinese tea-pot', quantity=90,
+                           eta=datetime.today() + timedelta(days=10))
     line = OrderLine(order_id=1, sku='chinese tea-pot', quantity=5)
     result = allocate(line, [shipment_stock, warehouse_stock])
     assert result['batch_ref'] == 'batch_1_ref' \
@@ -94,9 +95,12 @@ def test_prefer_allocation_to_warehouse_over_shipment():
 
 
 def test_allocation_to_batch_with_minimum_eta():
-    shipment_earliest_eta = Batch(reference='batch_1_ref', sku='chinese tea-pot', quantity=100, eta=datetime.today() + timedelta(days=10))
-    shipment_medium_eta = Batch(reference='batch_2_ref', sku='chinese tea-pot', quantity=100, eta=datetime.today() + timedelta(days=20))
-    shipment_latest_eta = Batch(reference='batch_3_ref', sku='chinese tea-pot', quantity=100, eta=datetime.today() + timedelta(days=30))
+    shipment_earliest_eta = Batch(reference='batch_1_ref', sku='chinese tea-pot', quantity=100,
+                                  eta=datetime.today() + timedelta(days=10))
+    shipment_medium_eta = Batch(reference='batch_2_ref', sku='chinese tea-pot', quantity=100,
+                                eta=datetime.today() + timedelta(days=20))
+    shipment_latest_eta = Batch(reference='batch_3_ref', sku='chinese tea-pot', quantity=100,
+                                eta=datetime.today() + timedelta(days=30))
     line = OrderLine(order_id=1, sku='chinese tea-pot', quantity=5)
     result = allocate(line, [shipment_earliest_eta, shipment_medium_eta, shipment_latest_eta])
     assert result['batch_ref'] == 'batch_1_ref' \
@@ -108,7 +112,8 @@ def test_allocate_raises_out_of_stock_exception_when_order_line_cannot_be_alloca
     cannot_allocated_batches = [
         Batch(reference='batch_1_ref', sku='chinese tea-pot', quantity=100, eta=datetime.today() + timedelta(days=10)),
         Batch(reference='batch_2_ref', sku='chinese tea-pot', quantity=100, eta=datetime.today() + timedelta(days=20)),
-        Batch(reference='batch_3_ref', sku='Japanese tea-pot', quantity=1000, eta=datetime.today() + timedelta(days=30))]
+        Batch(reference='batch_3_ref', sku='Japanese tea-pot', quantity=1000,
+              eta=datetime.today() + timedelta(days=30))]
     line = OrderLine(order_id=1, sku='chinese tea-pot', quantity=100)
 
     empty_batch_1_allocation = allocate(line, cannot_allocated_batches)
