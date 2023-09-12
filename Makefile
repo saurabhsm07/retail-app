@@ -14,7 +14,7 @@ help:
 
 .PHONY: build-docker-image
 build-docker-image: ## Build the docker image and install python dependencies
-	docker build --build-arg ENVIRONMENT=dev -t $(docker_image_name) .
+	docker build --no-cache --build-arg  ENVIRONMENT=dev -t $(docker_image_name) . > ./local/docker/build.log 2>&1
 
 
 .PHONY: run-tests

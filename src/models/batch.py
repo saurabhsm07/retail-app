@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import List, Set, Tuple, Dict
+from typing import List, Set, Tuple, Dict, Optional
 
 from models.order_line import OrderLine
 
@@ -9,13 +9,17 @@ class OutOfStock(Exception):
     pass
 
 
-@dataclass()
 class Batch:
-    id: int
-    sku: str
-    quantity: int
-    eta: datetime
-    _allocations: Set[OrderLine] = field(init=False, default_factory=set)
+
+    def __init__(self, reference: str,
+                 sku: str,
+                 quantity: int,
+                 eta: Optional[datetime]):
+        self.reference = reference
+        self.sku = sku
+        self.quantity = quantity
+        self.eta = eta
+        self._allocations = set()
 
     def allocate(self, order_line: OrderLine):
         try:
@@ -32,7 +36,8 @@ class Batch:
         return False
 
     def can_allocate(self, order_line: OrderLine) -> bool:
-        if order_line.sku == self.sku and order_line.quantity <= self.available_quantity and order_line not in self._allocations:
+        if (order_line.sku == self.sku and order_line.quantity <= self.available_quantity
+                and order_line not in self._allocations):
             return True
 
         return False
@@ -47,12 +52,12 @@ class Batch:
 
     def __eq__(self, other):
         if isinstance(other, Batch):
-            if self.id == other.id:
+            if self.reference == other.reference:
                 return True
         return False
 
     def __hash__(self):
-        return hash(self.id)
+        return hash(self.reference)
 
     def __gt__(self, other):
         if self.eta is None:
@@ -62,13 +67,13 @@ class Batch:
         return self.eta > other.eta
 
 
-def allocate(order_line: OrderLine, batches: List[Batch]) -> Dict[str, int]:
+def allocate(order_line: OrderLine, batches: List[Batch]) -> Dict[str, str]:
     """
     method selects most suitable batch from a list of batches for a particular order line,
     raises OutOfStock exception if order cannot be fulfilled
     :param order_line:
     :param batches:
-    :return: dict of order_id, batch_id (batch this particular order line is allocated to)
+    :return: dict of order_id, batch_ref (batch this particular order line is allocated to)
     """
     most_suitable_batch = None
     for batch in sorted(batches):
@@ -78,6 +83,6 @@ def allocate(order_line: OrderLine, batches: List[Batch]) -> Dict[str, int]:
 
     if most_suitable_batch is not None:
         most_suitable_batch.allocate(order_line)
-        return {'order_id': order_line.order_id, 'batch_id': most_suitable_batch.id}
+        return {'order_id': order_line.order_id, 'batch_ref': most_suitable_batch.reference}
 
     raise OutOfStock(f'Product {order_line.sku} of quantity {order_line.quantity} unavailable')

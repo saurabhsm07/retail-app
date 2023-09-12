@@ -36,6 +36,7 @@ Learnings:
      if we change one of those values, we now have a new line.
      any object that is identified only by its data and doesn't have a long-lived identity.
      Batch is an entity (has p.k) Order line is a value object (Does not have p.k)
+     We should make value objects immutable
 
    - Domain Service operations that don’t have a natural home in an entity or value object.
      the final allocate(orderLine, [Batch]) method that allocates an order line, given a set of batches, sounds a lot like a function

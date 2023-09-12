@@ -4,6 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
+sqlalchemy = "*"
 
 [dev-packages]
 rope = "*"
@@ -16,7 +17,7 @@ pytest-cov = "*"
 autopep8 = "*"
 
 [requires]
-python_version = "3.8"
+python_version = "3.11"
 
 [scripts]
 tidy = "scripts/tidy.sh"
