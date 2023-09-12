@@ -10,13 +10,24 @@ this is done using classical approach in SQLAlchemy
 auto-increment primary keys are excluded from domain model objects (id columns from batch and order_line classes) - I don't clearly understand why
 They are defined in the ORM as autoincrement primary key columns.
 
-** _allocations which is an array of order line objects is not part of batches ORM definition, instead we define a separate table for this
+SQL Alchemy:
+    - sqlalchemy.orm.registry.map_imperatively() : the model class is not scanned for any mapping information. Instead,
+                                                   all mapping constructs are passed as arguments.
+                                                   Useful in our DI approach.
+
+    -  sqlalchemy.orm.relationship() :  ** _allocations which is an array of order line objects is not part of batches ORM definition,
+                                        instead we define a separate table for this mapping.
+                                        We then use the property attribute object in our map_imperatively registry and define a 1 to many relationship between the 2 entities.
+
 
 updated OrderLine dataclass with parameter unsafe_hash=True, so that __hash__ and equality methods work even if the class contains mutable objects in it
 
 moved session specific fixtures to conftest py file
 [tool.pytest.ini_options] pythonpath = "src": This option sets the PYTHONPATH environment variable to include the "src" directory. This is useful if your source code is located in a separate directory from your tests and you want to ensure that pytest can import the necessary modules from the "src" directory
 
+
+SQL ALCHEMY:
+    -
 ** the book being followed has only 1 repository class implemented over abstract repo, I have created 1 per data model based entities
 ** currently repository and orm tests do not work correctly when I rum complete test suite because records inserted by 1 test are accessible to the other test:
    this is because the session object is available for the whole session of test suite execution

@@ -49,19 +49,26 @@ def test_batch_repo_can_add_batch(session):
 
 
 def test_order_line_repo_can_add_line(session):
-    order_line_obj = OrderLine(sku='chair',
-                               quantity=50,
-                               order_id='4233')
+    order_line_obj_1 = OrderLine(sku='chair',
+                                 quantity=50,
+                                 order_id='4233')
+    order_line_obj_2 = OrderLine(sku='table',
+                                 quantity=5,
+                                 order_id='4233')
 
     order_line_session = OrderLineRepository(session=session)
-    order_line_session.add(order_line_obj)
+    order_line_session.add(order_line_obj_1)
+    order_line_session.add(order_line_obj_2)
     session.commit()
     result = list(session.execute(text('SELECT sku,quantity,order_id FROM order_lines where order_id =:order_id'),
-                                  dict(order_id=order_line_obj.order_id)))
+                                  dict(order_id=order_line_obj_1.order_id)))
 
-    assert result == [(order_line_obj.sku,
-                       order_line_obj.quantity,
-                       order_line_obj.order_id)]
+    assert result == [(order_line_obj_1.sku,
+                       order_line_obj_1.quantity,
+                       order_line_obj_1.order_id),
+                      (order_line_obj_2.sku,
+                       order_line_obj_2.quantity,
+                       order_line_obj_2.order_id)]
 
 
 def test_order_lines_can_be_allocated_to_batches(session):

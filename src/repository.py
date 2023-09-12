@@ -34,5 +34,5 @@ class OrderLineRepository(AbstractRepository):
         self.session.add(order_line)
 
     def get(self, order_id):
-        return self.session.query(OrderLine).filter_by(order_id=order_id).one()
+        return self.session.query(OrderLine).filter_by(order_id=order_id)
 
