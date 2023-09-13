@@ -89,7 +89,7 @@ def test_prefer_allocation_to_warehouse_over_shipment():
                            eta=datetime.today() + timedelta(days=10))
     line = OrderLine(order_id=1, sku='chinese tea-pot', quantity=5)
     result = allocate(line, [shipment_stock, warehouse_stock])
-    assert result['batch_ref'] == 'batch_1_ref' \
+    assert result == 'batch_1_ref' \
            and warehouse_stock.available_quantity == 85 and warehouse_stock.allocated_quantity == 5 \
            and shipment_stock.available_quantity == 90
 
@@ -103,7 +103,7 @@ def test_allocation_to_batch_with_minimum_eta():
                                 eta=datetime.today() + timedelta(days=30))
     line = OrderLine(order_id=1, sku='chinese tea-pot', quantity=5)
     result = allocate(line, [shipment_earliest_eta, shipment_medium_eta, shipment_latest_eta])
-    assert result['batch_ref'] == 'batch_1_ref' \
+    assert result == 'batch_1_ref' \
            and shipment_earliest_eta.available_quantity == 95 and shipment_earliest_eta.allocated_quantity == 5 \
            and shipment_latest_eta.available_quantity == 100 and shipment_medium_eta.available_quantity == 100
 

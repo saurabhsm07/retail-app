@@ -2,11 +2,12 @@ import pytest
 
 from models import Batch, OrderLine
 from repository import AbstractRepository
+from services import allocate, InvalidSkuException
 
 
 class FakeRepository(AbstractRepository):
 
-    def __int__(self, batches):
+    def __init__(self, batches):
         self._batches = set(batches)
 
     def add(self, batch: Batch):
@@ -18,6 +19,7 @@ class FakeRepository(AbstractRepository):
     def list(self):
         return self._batches
 
+
 class FakeSession():
     committed = False
 
@@ -25,23 +27,31 @@ class FakeSession():
         self.committed = True
 
 
-def test_returns_allocation():
+def test_service_returns_allocation_on_successful_allocation():
     order_line = OrderLine("o1", "red-lamp", 10)
-    batch = Batch("b1", "red-lamp", 10)
+    batch = Batch("b1", "red-lamp", 10, None)
 
-    repo = FakeRepository(batch)
+    repo = FakeRepository([batch])
 
-    result = services.allocate(order_line, repo, FakeSession())
+    result = allocate(order_line, repo, FakeSession())
     assert result == 'b1'
+
 
 def test_service_raises_error_for_invalid_sku():
     order_line = OrderLine("o1", "invalid-sku", 10)
-    batch = Batch("b1", "red-lamp", 10)
+    batch = Batch("b1", "red-lamp", 10, None)
 
-    repo = FakeRepository(batch)
+    repo = FakeRepository([batch])
 
-    result = services.allocate(order_line, repo, FakeSession())
+    with pytest.raises(InvalidSkuException, match='Invalid sku : invalid-sku'):
+        allocate(order_line, repo, FakeSession())
 
-    with pytest.raises(services.InvalidSku, match='Invalid sku : invalid-sku'):
-        services.allocate(order_line, repo, FakeSession())
+def test_service_commits_changes_on_successful_allocation():
+    order_line = OrderLine("o1", "red-lamp", 10)
+    batch = Batch("b1", "red-lamp", 10, None)
 
+    repo = FakeRepository([batch])
+
+    session = FakeSession()
+    result = allocate(order_line, repo, session)
+    assert session.committed == True
