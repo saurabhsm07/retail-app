@@ -1,0 +1,3 @@
+Learnings:
+    - an API service is just meant to accept a request and return a response, it is not meant to perform database calls and calculations in itself.
+    - for this we break our service layer down into a separate components API / usecase layer and Service layer
