@@ -5,3 +5,5 @@ Learnings:
     - We do this so that we can provide any object that inherits from above methods, this helps in simpler test suite execution as well as actual code deployment.
 
     - we create fake implementations of our abstractions instead of making use of MOCK and monkey patch (FakeSession, FakeAbstractRepository in test_services), following the approach of "Faking over Mocking"
+
+    - ** WORKAROUND: Implemented a a bash script `tests.sh` to hold commands necessary to start a test environment inside a docker container, primarily to start a flask server.

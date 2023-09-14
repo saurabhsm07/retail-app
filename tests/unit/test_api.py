@@ -22,15 +22,16 @@ def random_order_id(name=""):
     return f"order-{name}-{random_suffix()}"
 
 
+# @pytest.mark.usefixtures('restart_api')
 def test_valid_request_returns_201_and_allocated_batch_reference(add_stock):
     sku_1 = random_sku('1')
     sku_2 = random_sku('2')
     early_batch = random_batch_ref('early')
     batches = [
-        Batch(reference=early_batch, sku=sku_1, quantity=54, eta='2023-01-06'),
-        Batch(reference=random_batch_ref('later'), sku=sku_1, quantity=5, eta='2023-01-12'),
-        Batch(reference=random_batch_ref('b3'), sku=sku_2, quantity=15, eta=None),
-        Batch(reference=random_batch_ref('b4'), sku=sku_2, quantity=15, eta='2023-01-03')
+        (early_batch, sku_1, 54, '2023-01-06'),
+        (random_batch_ref('later'), sku_1, 5, '2023-01-12'),
+        (random_batch_ref('b3'), sku_2, 15, '2023-08-02'),
+        (random_batch_ref('b4'), sku_2, 15, '2023-01-03')
     ]
 
     add_stock(batches)
@@ -43,7 +44,8 @@ def test_valid_request_returns_201_and_allocated_batch_reference(add_stock):
     assert res.json()['batch_ref'] == early_batch
 
 
-def test_invalid_request_returns_400_and_error_message():
+# @pytest.mark.usefixtures('restart_api')
+def test_invalid_request_returns_400_and_error_message(add_stock):
     sku_1 = random_sku('1')
     sku_2 = random_sku('2')
     invalid_sku = random_sku('INVALID')
@@ -51,11 +53,13 @@ def test_invalid_request_returns_400_and_error_message():
     early_batch = random_batch_ref('early')
 
     batches = [
-        Batch(reference=early_batch, sku=sku_1, quantity=54, eta='2023-01-06'),
-        Batch(reference=random_batch_ref('later'), sku=sku_1, quantity=5, eta='2023-01-12'),
-        Batch(reference=random_batch_ref('b3'), sku=sku_2, quantity=15, eta=None),
-        Batch(reference=random_batch_ref('b4'), sku=sku_2, quantity=15, eta='2023-01-03')
+        (early_batch, sku_1, 54, '2023-01-06'),
+        (random_batch_ref('later'), sku_1, 5, '2023-01-12'),
+        (random_batch_ref('b3'), sku_2, 15, '2023-08-02'),
+        (random_batch_ref('b4'), sku_2, 15, '2023-01-03')
     ]
+
+    add_stock(batches)
 
     req = {'order_id': random_order_id(), 'sku': invalid_sku, 'qty': 4}
 

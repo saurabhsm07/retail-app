@@ -19,3 +19,7 @@ by Harry Percival, Bob Gregory
 
 ### UPDATES:
 -   updated python version to `3.11` because in the older version of `3.8` pipenv virtual environment was raising SSL exceptions during package installation.
+
+### Workarounds:
+- Suffixed `Flask RUN` command with `&` in **tests.sh** bash script to avoid blocking current run on flask server start.
+  - NOTE: Delete the local sql lite db file manually before running unit tests against the docker container. 

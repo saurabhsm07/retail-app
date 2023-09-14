@@ -5,3 +5,5 @@ SOLUTION: Fixed with default_factory from dataclasses
 
 3. Building a fake repository in our repository pattern, I can see how its built I am yet to understand its usage.
 
+4. Currently facing issues in properly starting a Flask Application inside docker container and running tests against it
+
