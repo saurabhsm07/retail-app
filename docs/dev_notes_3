@@ -1,3 +1,7 @@
 Learnings:
     - an API service is just meant to accept a request and return a response, it is not meant to perform database calls and calculations in itself.
     - for this we break our service layer down into a separate components API / usecase layer and Service layer
+    - we introduce dependency injection in our service layer allocate method (services.allocate()) on Abstract repository and Session abstractions.
+    - We do this so that we can provide any object that inherits from above methods, this helps in simpler test suite execution as well as actual code deployment.
+
+    - we create fake implementations of our abstractions instead of making use of MOCK and monkey patch (FakeSession, FakeAbstractRepository in test_services), following the approach of "Faking over Mocking"

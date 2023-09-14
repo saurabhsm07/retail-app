@@ -5,6 +5,8 @@ name = "pypi"
 
 [packages]
 sqlalchemy = "*"
+flask = "*"
+requests = "*"
 
 [dev-packages]
 rope = "*"
