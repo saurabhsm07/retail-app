@@ -1,7 +1,7 @@
 import pytest
 from datetime import datetime, timedelta
 
-from models.batch import Batch, OutOfStock, allocate
+from models.batch import Batch, OutOfStockException, allocate
 from models.order_line import OrderLine
 
 
@@ -120,5 +120,5 @@ def test_allocate_raises_out_of_stock_exception_when_order_line_cannot_be_alloca
 
     empty_batch_2_allocation = allocate(line, cannot_allocated_batches)
 
-    with pytest.raises(OutOfStock):
+    with pytest.raises(OutOfStockException):
         out_stock_exception_allocation = allocate(line, cannot_allocated_batches)

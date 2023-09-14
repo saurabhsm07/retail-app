@@ -5,7 +5,7 @@ from typing import List, Set, Tuple, Dict, Optional
 from models.order_line import OrderLine
 
 
-class OutOfStock(Exception):
+class OutOfStockException(Exception):
     pass
 
 
@@ -85,4 +85,4 @@ def allocate(order_line: OrderLine, batches: List[Batch]) -> str:
         most_suitable_batch.allocate(order_line)
         return most_suitable_batch.reference
 
-    raise OutOfStock(f'Product {order_line.sku} of quantity {order_line.quantity} unavailable')
+    raise OutOfStockException(f'Product {order_line.sku} of quantity {order_line.quantity} unavailable')
