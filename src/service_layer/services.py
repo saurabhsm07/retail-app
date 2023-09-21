@@ -1,7 +1,8 @@
 from typing import List
-from models import OrderLine, Batch
-from models.batch import allocate as allocate_line
-from repository import AbstractRepository
+from domain.models.batch import Batch
+from domain.models.order_line import OrderLine
+from domain.models.batch import allocate as allocate_line
+from adapters.repository import AbstractRepository
 
 
 class InvalidSkuException(Exception):
@@ -24,5 +25,3 @@ def allocate(order_line: OrderLine, repository: AbstractRepository, session):
         session.commit()
 
         return batch_ref
-
-

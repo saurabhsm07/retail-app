@@ -1,8 +1,9 @@
 import pytest
 
-from models import Batch, OrderLine
-from repository import AbstractRepository
-from services import allocate, InvalidSkuException
+from domain.models.batch import Batch
+from domain.models.order_line import OrderLine
+from adapters.repository import AbstractRepository
+from service_layer.services import allocate, InvalidSkuException
 
 
 class FakeRepository(AbstractRepository):
@@ -45,6 +46,7 @@ def test_service_raises_error_for_invalid_sku():
 
     with pytest.raises(InvalidSkuException, match='Invalid sku : invalid-sku'):
         allocate(order_line, repo, FakeSession())
+
 
 def test_service_commits_changes_on_successful_allocation():
     order_line = OrderLine("o1", "red-lamp", 10)

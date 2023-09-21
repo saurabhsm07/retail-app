@@ -1,8 +1,8 @@
 import pytest
 from datetime import datetime, timedelta
 
-from models.batch import Batch, OutOfStockException, allocate
-from models.order_line import OrderLine
+from domain.models.batch import Batch, OutOfStockException, allocate
+from domain.models.order_line import OrderLine
 
 
 def test_batch_allocation_reduces_quantity_by_allocated_quantity():

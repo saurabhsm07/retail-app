@@ -1,14 +1,12 @@
-from pathlib import Path
-
 from flask import Flask, jsonify, request
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-import orm
-from repository import BatchRepository
-from models import OrderLine
-from models.batch import OutOfStockException
-from services import allocate, InvalidSkuException
+from adapters import orm
+from adapters.repository import BatchRepository
+from domain.models.order_line import OrderLine
+from domain.models.batch import OutOfStockException
+from service_layer.services import allocate, InvalidSkuException
 from config import get_db_url
 
 orm.start_mappers()

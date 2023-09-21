@@ -2,7 +2,7 @@
 name = "retail_app"
 version = "0.0.1"
 authors = [
-  { name="Saurabh Mahambrey", email="mahambrey.saurabh07@gmail.com" },
+    { name = "Saurabh Mahambrey", email = "mahambrey.saurabh07@gmail.com" },
 ]
 description = "A retail app following TDD framework"
 readme = "README.md"

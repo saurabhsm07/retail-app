@@ -1,8 +1,8 @@
-import pytest
 from sqlalchemy import text
 
-from repository import BatchRepository, OrderLineRepository
-from models import Batch, OrderLine
+from adapters.repository import BatchRepository, OrderLineRepository
+from domain.models.batch import Batch, OrderLine
+from domain.models.order_line import  OrderLine
 from datetime import datetime, timedelta
 from sqlalchemy.orm import sessionmaker
 

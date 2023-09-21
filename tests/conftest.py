@@ -1,5 +1,4 @@
 import time
-from pathlib import Path
 
 import pytest
 import requests
@@ -7,8 +6,8 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker, clear_mappers
 
 import config
-from flask_app import app
-from orm import start_mappers, mapper_registry
+from entrypoints.flask_app import app
+from adapters.orm import mapper_registry
 
 
 @pytest.fixture(scope="session")

@@ -1,9 +1,7 @@
-import pytest
 import requests
 import uuid
 
 from config import get_api_url
-from models import Batch
 
 
 def random_suffix():
@@ -62,6 +60,29 @@ def test_invalid_request_returns_400_and_error_message(add_stock):
     add_stock(batches)
 
     req = {'order_id': random_order_id(), 'sku': invalid_sku, 'qty': 4}
+
+    res = requests.post(f'{get_api_url()}/allocate', json=req)
+
+    assert res.status_code == 400
+    # assert res.json()['batch_ref'] == early_batch
+
+
+def test_request_for_quantity_more_than_available_returns_400_and_error_message(add_stock):
+    sku_1 = random_sku('1')
+    sku_2 = random_sku('2')
+
+    early_batch = random_batch_ref('early')
+
+    batches = [
+        (early_batch, sku_1, 54, '2023-01-06'),
+        (random_batch_ref('later'), sku_1, 5, '2023-01-12'),
+        (random_batch_ref('b3'), sku_2, 15, '2023-08-02'),
+        (random_batch_ref('b4'), sku_2, 15, '2023-01-03')
+    ]
+
+    add_stock(batches)
+
+    req = {'order_id': random_order_id(), 'sku': sku_2, 'qty': 400}
 
     res = requests.post(f'{get_api_url()}/allocate', json=req)
 

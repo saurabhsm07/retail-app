@@ -1,8 +1,7 @@
-from dataclasses import dataclass, field
 from datetime import datetime
-from typing import List, Set, Tuple, Dict, Optional
+from typing import List, Optional
 
-from models.order_line import OrderLine
+from domain.models.order_line import OrderLine
 
 
 class OutOfStockException(Exception):
