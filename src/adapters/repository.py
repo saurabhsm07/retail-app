@@ -1,5 +1,6 @@
 import abc
-from models import Batch, OrderLine
+from domain.models.batch import Batch
+from domain.models.order_line import OrderLine
 
 
 class AbstractRepository(abc.ABC):
@@ -35,4 +36,3 @@ class OrderLineRepository(AbstractRepository):
 
     def get(self, order_id):
         return self.session.query(OrderLine).filter_by(order_id=order_id)
-

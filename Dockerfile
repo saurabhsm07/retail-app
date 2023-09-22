@@ -17,3 +17,5 @@ COPY Pipfile Pipfile.lock ./
 
 #RUN if [ "$ENVIRONMENT" = "dev" ]; then pipenv install --deploy --system --dev; else pipenv install --system; fi -> NOTE: this command is not working
 RUN pipenv install --deploy --system --dev
+
+ENV FLASK_APP=src/flask_app.py FLASK_DEBUG=1 PYTHONUNBUFFERED=1

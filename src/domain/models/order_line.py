@@ -6,4 +6,3 @@ class OrderLine:
     order_id: str
     sku: str
     quantity: int
-

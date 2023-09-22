@@ -1,8 +1,8 @@
 import pytest
 from datetime import datetime, timedelta
 
-from models.batch import Batch, OutOfStock, allocate
-from models.order_line import OrderLine
+from domain.models.batch import Batch, OutOfStockException, allocate
+from domain.models.order_line import OrderLine
 
 
 def test_batch_allocation_reduces_quantity_by_allocated_quantity():
@@ -89,7 +89,7 @@ def test_prefer_allocation_to_warehouse_over_shipment():
                            eta=datetime.today() + timedelta(days=10))
     line = OrderLine(order_id=1, sku='chinese tea-pot', quantity=5)
     result = allocate(line, [shipment_stock, warehouse_stock])
-    assert result['batch_ref'] == 'batch_1_ref' \
+    assert result == 'batch_1_ref' \
            and warehouse_stock.available_quantity == 85 and warehouse_stock.allocated_quantity == 5 \
            and shipment_stock.available_quantity == 90
 
@@ -103,7 +103,7 @@ def test_allocation_to_batch_with_minimum_eta():
                                 eta=datetime.today() + timedelta(days=30))
     line = OrderLine(order_id=1, sku='chinese tea-pot', quantity=5)
     result = allocate(line, [shipment_earliest_eta, shipment_medium_eta, shipment_latest_eta])
-    assert result['batch_ref'] == 'batch_1_ref' \
+    assert result == 'batch_1_ref' \
            and shipment_earliest_eta.available_quantity == 95 and shipment_earliest_eta.allocated_quantity == 5 \
            and shipment_latest_eta.available_quantity == 100 and shipment_medium_eta.available_quantity == 100
 
@@ -120,5 +120,5 @@ def test_allocate_raises_out_of_stock_exception_when_order_line_cannot_be_alloca
 
     empty_batch_2_allocation = allocate(line, cannot_allocated_batches)
 
-    with pytest.raises(OutOfStock):
+    with pytest.raises(OutOfStockException):
         out_stock_exception_allocation = allocate(line, cannot_allocated_batches)

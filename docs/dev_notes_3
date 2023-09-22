@@ -1,0 +1,20 @@
+Learnings:
+    - an API service is just meant to accept a request and return a response, it is not meant to perform database calls and calculations in itself.
+    - for this we break our service layer down into a separate components API / usecase layer and Service layer
+    - we introduce dependency injection in our service layer allocate method (services.allocate()) on Abstract repository and Session abstractions.
+    - We do this so that we can provide any object that inherits from above methods, this helps in simpler test suite execution as well as actual code deployment.
+
+    - we create fake implementations of our abstractions instead of making use of MOCK and monkey patch (FakeSession, FakeAbstractRepository in test_services), following the approach of "Faking over Mocking"
+
+    - ** WORKAROUND: Implemented a a bash script `tests.sh` to hold commands necessary to start a test environment inside a docker container, primarily to start a flask server.
+
+ - PROJECT RESTRUCTURE:
+    -   Created a package `Domain` and moved `models` package inside it.
+    -   Created a package `entrypoints` and moved `flask_app` module inside it.
+    -   Created a package `service_layer` and moved `services` module inside it.
+    -   Created a package `adapters` and moved `orm` and `repository` module inside it. -> anything that falls within around external I/O
+
+    - Test segregation:
+        -   created a dir `integration` and moved orm and repository test modules inside it.
+        -   created a dir `e2e` and moved api test module inside it.
+        -   remaining tests we kept in 'unit' dir itself.
