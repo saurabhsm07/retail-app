@@ -1,8 +1,9 @@
+import pytest
 from sqlalchemy import text
 
 from adapters.repository import BatchRepository, OrderLineRepository
 from domain.models.batch import Batch, OrderLine
-from domain.models.order_line import  OrderLine
+from domain.models.order_line import OrderLine
 from datetime import datetime, timedelta
 from sqlalchemy.orm import sessionmaker
 
@@ -80,3 +81,24 @@ def test_order_lines_can_be_allocated_to_batches(session):
     batch_obj = batch_session.get('batch-a')
 
     assert batch_obj._allocations == {OrderLine(sku="chair-1", quantity=3, order_id="423")}
+
+
+def test_order_line_can_be_de_allocated_from_batches(session):
+    batch_id = insert_batch_record(session, 'batch-a')
+    order_line_id_1 = insert_order_line_record(session, 'deallocated')
+    order_line_id_2 = insert_order_line_record(session, 'allocated')
+
+    insert_allocation_records(session, batch_id, order_line_id_1)
+    insert_allocation_records(session, batch_id, order_line_id_2)
+
+    batch_session = BatchRepository(session)
+    batch_obj = batch_session.get('batch-a')
+    batch_obj.deallocate(OrderLine(sku="chair-1", quantity=3, order_id="deallocated"))
+
+    session.commit()    # committing the session to see if updating repo object reflects the change in DB or not
+
+    batch_session = BatchRepository(session)
+    batch_obj = batch_session.get('batch-a')
+
+    assert (OrderLine(sku="chair-1", quantity=3, order_id="deallocated") not in batch_obj._allocations and
+            OrderLine(sku="chair-1", quantity=3, order_id="allocated") in batch_obj._allocations)
