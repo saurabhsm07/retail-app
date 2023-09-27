@@ -7,8 +7,14 @@ from sqlalchemy.orm import sessionmaker, clear_mappers
 
 import config
 from entrypoints.flask_app import app
-from adapters.orm import mapper_registry
+from adapters.orm import mapper_registry, start_mappers
 
+'''
+Updates:
+    -   commented out start_mappers() in session method 
+        because we our orm and flask app is tightly coupled and we are already starting a mapper in flask_app module.
+        calling the method twice throws ArgumentError: already has a primary mapper defined  
+'''
 
 @pytest.fixture(scope="session")
 def session():

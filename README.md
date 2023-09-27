@@ -18,6 +18,20 @@ by Harry Percival, Bob Gregory
     - build container image
     - execute test suite
     - open shell
+  
+### INITIALIZATION:  
+
+Set *FLASK_APP* env variable  as per your OS, virtual env and start server local as below
+```
+FLASK_APP=src/entrypoints/flask_app.py 
+flask run --host=0.0.0.0 --port=80
+```
+### Running Test Suite:  
+- Option 1: Start a Flask App server as in **INITIALIZATION** steps and run the test suite manually using pytest.
+- Option 2: Follow the **SETUP** Steps and run using docker container and make file.
+
+### ISSUES:  
+- Running the docker file will not automate a container and start a web application.
 
 ### UPDATES:
 

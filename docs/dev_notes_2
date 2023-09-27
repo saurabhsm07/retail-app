@@ -20,6 +20,8 @@ SQL Alchemy:
                                         We then use the property attribute object in our map_imperatively registry and define a 1 to many relationship between the 2 entities.
 
 
+Dependency inversion detailed above has been successfully implemented in our orm.py file (adapters/orm.py).
+
 updated OrderLine dataclass with parameter unsafe_hash=True, so that __hash__ and equality methods work even if the class contains mutable objects in it
 
 moved session specific fixtures to conftest py file

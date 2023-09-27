@@ -27,7 +27,7 @@ class Batch:
         except Exception as e:
             raise Exception('Order allocation failed: ' + str(e))
 
-    def deallocate(self, order_line):
+    def deallocate(self, order_line: OrderLine):
         if order_line in self._allocations:
             self._allocations.remove(order_line)
             return True
