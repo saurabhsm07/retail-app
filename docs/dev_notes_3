@@ -18,3 +18,10 @@ Learnings:
         -   created a dir `integration` and moved orm and repository test modules inside it.
         -   created a dir `e2e` and moved api test module inside it.
         -   remaining tests we kept in 'unit' dir itself.
+
+
+** Confusion points:
+-   I have created 2 FakeRepositories 1 for Batch and 1 for Order Line in test_services to facilitate simple unit tests
+-   My deallocate service layer method requires 2 repo objects (Batch and Order Line) to work successfully
+-   Currently I create a separate Repository for each domain model object. The book that I follow only makes use of 1,
+    although it also has only 1 Repo dependency for its allocate method.

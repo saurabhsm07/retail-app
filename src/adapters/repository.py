@@ -2,6 +2,12 @@ import abc
 from domain.models.batch import Batch
 from domain.models.order_line import OrderLine
 
+'''
+UPDATES:
+    - Each domain model object has its own repository abstraction
+    - Added additional method get_by_order_id_and_sku to get a unique row from Order Line data.
+'''
+
 
 class AbstractRepository(abc.ABC):
     @abc.abstractmethod
@@ -35,4 +41,7 @@ class OrderLineRepository(AbstractRepository):
         self.session.add(order_line)
 
     def get(self, order_id):
-        return self.session.query(OrderLine).filter_by(order_id=order_id)
+        return self.session.query(OrderLine).filter_by(order_id=order_id).all()
+
+    def get_by_order_id_and_sku(self, order_id, sku) -> OrderLine:
+        return self.session.query(OrderLine).filter_by(order_id=order_id, sku=sku).one()

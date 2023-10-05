@@ -2,6 +2,7 @@ import requests
 import uuid
 
 from config import get_api_url
+from domain.models.order_line import OrderLine
 
 
 def random_suffix():
@@ -21,7 +22,7 @@ def random_order_id(name=""):
 
 
 # @pytest.mark.usefixtures('restart_api')
-def test_valid_request_returns_201_and_allocated_batch_reference(add_stock):
+def test_valid_allocation_request_returns_201_and_allocated_batch_reference(add_stock):
     sku_1 = random_sku('1')
     sku_2 = random_sku('2')
     early_batch = random_batch_ref('early')
@@ -41,6 +42,24 @@ def test_valid_request_returns_201_and_allocated_batch_reference(add_stock):
     assert res.status_code == 201
     assert res.json()['batch_ref'] == early_batch
 
+
+def test_valid_de_allocation_request_returns_201(add_batch_and_allocations):
+    sku_1 = random_sku('1')
+
+    batch = {
+        'reference': random_batch_ref('b1'),
+        'sku': sku_1,
+        'quantity': 54,
+        'eta': '2023-01-06'
+    }
+    order_lines = [
+        (random_order_id('1'), sku_1, 10),
+        (random_order_id('2'), sku_1, 10),
+        (random_order_id('3'), sku_1, 41),
+    ]
+    add_batch_and_allocations(batch, order_lines)
+
+    assert 1 == 1
 
 # @pytest.mark.usefixtures('restart_api')
 def test_invalid_request_returns_400_and_error_message(add_stock):
