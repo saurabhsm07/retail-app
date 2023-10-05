@@ -3,10 +3,10 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from adapters import orm
-from adapters.repository import BatchRepository
+from adapters.repository import BatchRepository, OrderLineRepository
 from domain.models.order_line import OrderLine
 from domain.models.batch import OutOfStockException
-from service_layer.services import allocate, InvalidSkuException
+from service_layer.services import allocate, InvalidSkuException, deallocate
 from config import get_db_url
 
 orm.start_mappers()
@@ -30,3 +30,23 @@ def allocate_endpoint():
         return jsonify({'message': str(e)}), 400
 
     return jsonify({'batch_ref': batch_ref}), 201
+
+
+@app.route('/deallocate', methods=["get"])
+def deallocate_endpoint():
+    session = get_session()
+
+    order_id = request.args.get('order_id')
+    batch_id = request.args.get('batch_id')
+
+    try:
+        status, qty = deallocate(order_id, batch_id, BatchRepository(session), OrderLineRepository(session), session)
+
+        if status:
+            return jsonify({'message': f'Order line of order : {order_id} and qty : {qty} '
+                                       f'successfully deallocated from batch : {batch_id}'}), 204
+        else:
+            return jsonify({'message': f'cannot deallocate unallocated order line'}), 200
+    except Exception as e:
+        print(str(e))
+        return jsonify({'message': str(e)}), 400
