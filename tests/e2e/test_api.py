@@ -43,7 +43,7 @@ def test_valid_allocation_request_returns_201_and_allocated_batch_reference(add_
     assert res.json()['batch_ref'] == early_batch
 
 
-def test_valid_de_allocation_request_returns_201(add_batch_and_allocations):
+def test_valid_de_allocation_request_returns_204(add_batch_and_allocations):
     sku_1 = random_sku('1')
 
     batch = {
@@ -52,14 +52,40 @@ def test_valid_de_allocation_request_returns_201(add_batch_and_allocations):
         'quantity': 54,
         'eta': '2023-01-06'
     }
+    deallocated_order_line_id = random_order_id('3')
     order_lines = [
         (random_order_id('1'), sku_1, 10),
         (random_order_id('2'), sku_1, 10),
-        (random_order_id('3'), sku_1, 41),
+        (deallocated_order_line_id, sku_1, 41),
     ]
     add_batch_and_allocations(batch, order_lines)
 
-    assert 1 == 1
+    payload = {'batch_id': batch['reference'], 'order_id': deallocated_order_line_id}
+    res = requests.get(f'{get_api_url()}/deallocate', payload)
+    assert res.status_code == 204
+
+
+def test_invalid_de_allocation_request_returns_200(add_batch_and_allocations):
+    sku_1 = random_sku('1')
+
+    batch = {
+        'reference': random_batch_ref('b1'),
+        'sku': sku_1,
+        'quantity': 54,
+        'eta': '2023-01-06'
+    }
+    unallocated_order_id = random_order_id('3')
+    order_lines = [
+        (random_order_id('1'), sku_1, 10),
+        (random_order_id('2'), sku_1, 10),
+        (unallocated_order_id, sku_1, 41),
+    ]
+    add_batch_and_allocations(batch, order_lines, unallocated_order_id)
+
+    payload = {'batch_id': batch['reference'], 'order_id': unallocated_order_id}
+    res = requests.get(f'{get_api_url()}/deallocate', payload)
+    assert res.status_code == 200 and res.json()['message'] == 'cannot deallocate unallocated order line'
+
 
 # @pytest.mark.usefixtures('restart_api')
 def test_invalid_request_returns_400_and_error_message(add_stock):

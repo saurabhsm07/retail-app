@@ -68,29 +68,50 @@ def add_stock(session):
 @pytest.fixture()
 def add_batch_and_allocations(session):
     order_lines_added = set()
-    sku_added = set()
+    batch_added = set()
 
-    def _add_batch_and_allocate_lines(batch: Dict, lines: List):
+    def _add_batch_and_allocate_lines(batch: Dict, lines: List, unallocated_order_id =''):
         session.execute(text('insert into batches (reference, sku, quantity, eta) values'
                              f'("{batch["reference"]}","{batch["sku"]}",{batch["quantity"]},"{batch["eta"]}")'))
 
-        batch_id = list(session.execute(text('insert id from batches'
-                                             f'where reference = :batch_ref'), dict(batch_ref=batch.reference)))[0][0]
-
+        batch_id = list(session.execute(text('SELECT id from batches'
+                                             f' where reference =:batch_ref'), dict(batch_ref=batch['reference'])))[0][
+            0]
+        batch_added.add(batch_id)
         for order_id, sku, qty in lines:
             session.execute(text('insert into order_lines (order_id, sku, quantity) values'
                                  f'("{order_id}","{sku}",{qty})'))
             order_lines_added.add(order_id)
 
-        order_line_ids = list(session.execute(text('select id from order_lines'
-                                                   f'where order_id in {order_lines_added}')))[0]
+        order_line_ids = []
+        for order_id in order_lines_added:
+            if order_id != unallocated_order_id:
+                order_line_ids.append(list(session.execute(text('SELECT id FROM order_lines WHERE order_id = :order_id'),
+                                                       {'order_id': order_id}))[0][0])
 
         for line_id in order_line_ids:
+
             session.execute(text('insert into allocations (batch_id, order_line_id) values'
                                  f'({batch_id},{line_id})'))
         session.commit()
 
-    return _add_batch_and_allocate_lines
+    yield _add_batch_and_allocate_lines
+
+    for batch_id in batch_added:
+        session.execute(
+            text("DELETE FROM allocations WHERE batch_id=:batch_id"),
+            dict(batch_id= batch_id),
+        )
+        session.execute(
+            text("DELETE FROM batches WHERE id=:batch_id"), dict(batch_id=batch_id),
+        )
+
+    for order_id in order_lines_added:
+        session.execute(
+            text("DELETE FROM order_lines WHERE order_id=:order_id"), dict(order_id=order_id),
+        )
+
+    session.commit()
 
 
 def wait_for_webapp_to_come_up():
