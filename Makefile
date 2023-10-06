@@ -9,6 +9,8 @@ help:
 	@echo "Available targets:"
 	@echo "build-docker-image		Build docker image"
 	@echo "run-tests			Run tests"
+	@echo "lint				Find linting errors"
+	@echo "tidy				Tidy up your code"
 	@echo "start-shell			Start Container and open an interactive shell"
 
 
@@ -20,6 +22,16 @@ build-docker-image: ## Build the docker image and install python dependencies
 .PHONY: run-tests
 run-tests:
 	$(docker_run) pipenv run test
+
+
+.PHONY: lint
+lint:
+	$(docker_run) pipenv run lint
+
+.PHONY: tidy
+tidy:
+	$(docker_run) pipenv run tidy
+
 
 .PHONY: start-shell
 start-shell:
