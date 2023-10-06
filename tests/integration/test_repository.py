@@ -84,7 +84,7 @@ def test_order_lines_can_be_allocated_to_batches(session):
 
 
 def test_order_line_can_be_de_allocated_from_batches(session):
-    batch_id = insert_batch_record(session, 'batch-a')
+    batch_id = insert_batch_record(session, 'batch-b')
     order_line_id_1 = insert_order_line_record(session, 'deallocated')
     order_line_id_2 = insert_order_line_record(session, 'allocated')
 
@@ -92,13 +92,13 @@ def test_order_line_can_be_de_allocated_from_batches(session):
     insert_allocation_records(session, batch_id, order_line_id_2)
 
     batch_session = BatchRepository(session)
-    batch_obj = batch_session.get('batch-a')
+    batch_obj = batch_session.get('batch-b')
     batch_obj.deallocate(OrderLine(sku="chair-1", quantity=3, order_id="deallocated"))
 
     session.commit()    # committing the session to see if updating repo object reflects the change in DB or not
 
     batch_session = BatchRepository(session)
-    batch_obj = batch_session.get('batch-a')
+    batch_obj = batch_session.get('batch-b')
 
     assert (OrderLine(sku="chair-1", quantity=3, order_id="deallocated") not in batch_obj._allocations and
             OrderLine(sku="chair-1", quantity=3, order_id="allocated") in batch_obj._allocations)
