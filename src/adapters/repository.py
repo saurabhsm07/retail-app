@@ -11,11 +11,11 @@ UPDATES:
 
 class AbstractRepository(abc.ABC):
     @abc.abstractmethod
-    def add(self, batch: Batch):
+    def add(self, obj):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def get(self, reference) -> Batch:
+    def get(self, reference):
         raise NotImplementedError
 
 
