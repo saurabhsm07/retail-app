@@ -3,7 +3,7 @@ import pytest
 from domain.models.batch import Batch
 from domain.models.order_line import OrderLine
 from adapters.repository import AbstractRepository
-from service_layer.services import allocate, InvalidSkuException, deallocate
+from service_layer.services import allocate, InvalidSkuException, deallocate, insert_batch
 
 
 class FakeBatchRepository(AbstractRepository):
@@ -96,4 +96,20 @@ def test_service_commits_changes_on_successful_allocation():
 
     session = FakeSession()
     result = allocate(order_line, repo, session)
-    assert session.committed == True
+    assert session.committed
+
+
+def test_service_can_insert_a_batch_on_valid_request():
+    batch_attrs = {"reference": "b_a", "sku": "green-lamp", "quantity": 10, "eta": None}
+
+    repo_batch = FakeBatchRepository([])
+
+    session = FakeSession()
+
+    status = insert_batch(repo_batch, session, **batch_attrs)
+
+    assert status
+    assert repo_batch.get(batch_attrs['reference']) == Batch(reference=batch_attrs['reference'], sku=batch_attrs['sku'],
+                                                             quantity=batch_attrs['quantity'], eta=batch_attrs['eta'])
+    assert session.committed
+
