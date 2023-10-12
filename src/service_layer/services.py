@@ -1,4 +1,5 @@
-from typing import List
+from typing import List, Optional
+from datetime import date
 from domain.models.batch import Batch
 from domain.models.order_line import OrderLine
 from domain.models.batch import allocate as allocate_line
@@ -19,6 +20,25 @@ def is_valid_sku(sku, batches: List[Batch]):
         return True
     else:
         return False
+
+
+def insert_batch(repo: AbstractRepository, session, reference: str, sku: str, quantity: int, eta: Optional[date]):
+    '''
+    :param repo:
+    :param session:
+    :param reference:
+    :param sku:
+    :param quantity:
+    :param eta:
+    :return:
+    '''
+    try:
+        repo.add(Batch(reference=reference, sku=sku, quantity=quantity, eta=eta))
+        session.commit()
+        return True
+    except Exception as e:
+        print("Error :" + e)
+        print("str ERROR:" + str(e))
 
 
 def allocate(order_line: OrderLine, repository: AbstractRepository, session):
