@@ -24,8 +24,8 @@ Updates:
 def session_factory():
     engine = create_engine(config.get_db_url())
     mapper_registry.metadata.create_all(engine)
-    start_mappers()
-    session = sessionmaker(bind=engine)()
+    # start_mappers()
+    session = sessionmaker(bind=engine)
     yield session
     clear_mappers()
 
