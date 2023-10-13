@@ -7,3 +7,9 @@ Solution:
 - we create another layer of abstraction called unit of work which will manage session creation and returning to us (service) a repository object thus collaborating with the Repository
 - we make use of unit of work design pattern to decouple our service layer from the data layer.
     - which means neither the service layer nor the API layer directly communicates with the datalayer.
+
+Approach:
+    -   We define a class abstract class AbstractBatchUnitOfWork.
+    -   Define batches (class var), which will give us access to the batches repository.
+    -   This implementation is to be used with a context manager (with) hence we define dunder `enter` and `exit` methods as well.
+    -   `rollback` and `commit` methods are also implemented.
