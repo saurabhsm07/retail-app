@@ -50,7 +50,7 @@ class FakeSession():
 class FakeBatchesUnitOfWork(AbstractBatchUnitOfWork):
 
     def __init__(self):
-        self.batch_repo = FakeBatchRepository([])
+        self.batches = FakeBatchRepository([])
         self.committed = False
 
     def commit(self):
@@ -120,8 +120,8 @@ def test_service_can_insert_a_batch_on_valid_request():
     status = insert_batch(aow, **batch_attrs)
 
     assert status
-    assert aow.batch_repo.get(batch_attrs['reference']) == Batch(reference=batch_attrs['reference'],
-                                                                 sku=batch_attrs['sku'],
-                                                                 quantity=batch_attrs['quantity'],
-                                                                 eta=batch_attrs['eta'])
+    assert aow.batches.get(batch_attrs['reference']) == Batch(reference=batch_attrs['reference'],
+                                                              sku=batch_attrs['sku'],
+                                                              quantity=batch_attrs['quantity'],
+                                                              eta=batch_attrs['eta'])
     assert aow.committed

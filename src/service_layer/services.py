@@ -4,6 +4,7 @@ from domain.models.batch import Batch
 from domain.models.order_line import OrderLine
 from domain.models.batch import allocate as allocate_line
 from adapters.repository import AbstractRepository
+from service_layer.unit_of_work import AbstractBatchUnitOfWork
 
 '''
 UPDATES:
@@ -22,20 +23,22 @@ def is_valid_sku(sku, batches: List[Batch]):
         return False
 
 
-def insert_batch(repo: AbstractRepository, session, reference: str, sku: str, quantity: int, eta: Optional[date]):
+def insert_batch(batch_aow: AbstractBatchUnitOfWork, reference: str, sku: str, quantity: int, eta: Optional[date]):
     '''
-    :param repo:
-    :param session:
+    :param batch_aow: batch unit  of work object
     :param reference:
     :param sku:
     :param quantity:
     :param eta:
-    :return:
+    :return: boolean True: inserted, False : didn't insert
     '''
     try:
-        repo.add(Batch(reference=reference, sku=sku, quantity=quantity, eta=eta))
-        session.commit()
+        with batch_aow:
+            batch_aow.batches.add(Batch(reference=reference, sku=sku, quantity=quantity, eta=eta))
+            batch_aow.commit()
+
         return True
+
     except Exception as e:
         print("Error :" + e)
         print("str ERROR:" + str(e))
