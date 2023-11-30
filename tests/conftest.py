@@ -22,17 +22,25 @@ Updates:
 
 @pytest.fixture(scope="session")
 def session_factory():
-    engine = create_engine(config.get_db_url())
-    mapper_registry.metadata.create_all(engine)
+    session = get_session_obj()
     # start_mappers()
-    session = sessionmaker(bind=engine)
     yield session
     clear_mappers()
 
 
 @pytest.fixture(scope="session")
 def session():
-    return session_factory()
+    session = get_session_obj()
+    # start_mappers()
+    yield session()
+    clear_mappers()
+
+
+def get_session_obj():
+    engine = create_engine(config.get_db_url())
+    mapper_registry.metadata.create_all(engine)
+    session = sessionmaker(bind=engine)
+    return session
 
 
 @pytest.fixture()
