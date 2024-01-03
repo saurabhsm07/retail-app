@@ -45,6 +45,13 @@ def insert_batch(batch_aow: AbstractBatchUnitOfWork, reference: str, sku: str, q
 
 
 def allocate(order_line: OrderLine, repository: AbstractRepository, session):
+    """
+    Service layer method to allocate a valid order line to a particular batch
+    :param order_line:
+    :param repository: batch repository object
+    :param session: database session object
+    :return:
+    """
     if not is_valid_sku(order_line.sku, repository.list()):
         raise InvalidSkuException(f'Invalid sku : {order_line.sku}')
 
@@ -58,6 +65,7 @@ def allocate(order_line: OrderLine, repository: AbstractRepository, session):
 def deallocate(order_id: str, batch_ref: str, batch_repository: AbstractRepository, order_line_repo: AbstractRepository,
                session):
     '''
+    deallocate method to remove an allocated line from a batch
     :param order_id:
     :param batch_ref:
     :param batch_repository: batch repository object to fetch necessary batch from DB
