@@ -3,7 +3,8 @@ import pytest
 from domain.models.batch import Batch
 from domain.models.order_line import OrderLine
 from adapters.repository import AbstractRepository
-from service_layer.services import allocate, InvalidSkuException, deallocate
+from service_layer.services import allocate, InvalidSkuException, deallocate, insert_batch
+from service_layer.unit_of_work import AbstractBatchUnitOfWork
 
 
 class FakeBatchRepository(AbstractRepository):
@@ -44,6 +45,19 @@ class FakeSession():
 
     def commit(self):
         self.committed = True
+
+
+class FakeBatchesUnitOfWork(AbstractBatchUnitOfWork):
+
+    def __init__(self):
+        self.batches = FakeBatchRepository([])
+        self.committed = False
+
+    def commit(self):
+        self.committed = True
+
+    def rollback(self):
+        pass
 
 
 def test_service_returns_allocated_batch_reference_on_successful_allocation():
@@ -96,4 +110,18 @@ def test_service_commits_changes_on_successful_allocation():
 
     session = FakeSession()
     result = allocate(order_line, repo, session)
-    assert session.committed == True
+    assert session.committed
+
+
+def test_service_can_insert_a_batch_on_valid_request():
+    batch_attrs = {"reference": "b_a", "sku": "green-lamp", "quantity": 10, "eta": None}
+
+    aow = FakeBatchesUnitOfWork()
+    status = insert_batch(aow, **batch_attrs)
+
+    assert status
+    assert aow.batches.get(batch_attrs['reference']) == Batch(reference=batch_attrs['reference'],
+                                                              sku=batch_attrs['sku'],
+                                                              quantity=batch_attrs['quantity'],
+                                                              eta=batch_attrs['eta'])
+    assert aow.committed

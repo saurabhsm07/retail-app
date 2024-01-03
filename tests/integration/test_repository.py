@@ -2,13 +2,13 @@ import pytest
 from sqlalchemy import text
 
 from adapters.repository import BatchRepository, OrderLineRepository
-from domain.models.batch import Batch, OrderLine
+from domain.models.batch import Batch
 from domain.models.order_line import OrderLine
 from datetime import datetime, timedelta
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import Session
 
 
-def insert_batch_record(session: sessionmaker, batch_ref: str):
+def insert_batch_record(session: Session, batch_ref: str):
     session.execute(text('insert into batches (reference, sku, quantity) values'
                          f'("{batch_ref}","chair-1",50)'))
     session.commit()
@@ -95,7 +95,7 @@ def test_order_line_can_be_de_allocated_from_batches(session):
     batch_obj = batch_session.get('batch-b')
     batch_obj.deallocate(OrderLine(sku="chair-1", quantity=3, order_id="deallocated"))
 
-    session.commit()    # committing the session to see if updating repo object reflects the change in DB or not
+    session.commit()  # committing the session to see if updating repo object reflects the change in DB or not
 
     batch_session = BatchRepository(session)
     batch_obj = batch_session.get('batch-b')

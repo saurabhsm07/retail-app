@@ -21,13 +21,26 @@ Updates:
 
 
 @pytest.fixture(scope="session")
-def session():
-    engine = create_engine(config.get_db_url())
-    mapper_registry.metadata.create_all(engine)
+def session_factory():
+    session = get_session_obj()
     # start_mappers()
-    session = sessionmaker(bind=engine)()
     yield session
     clear_mappers()
+
+
+@pytest.fixture(scope="session")
+def session():
+    session = get_session_obj()
+    # start_mappers()
+    yield session()
+    clear_mappers()
+
+
+def get_session_obj():
+    engine = create_engine(config.get_db_url())
+    mapper_registry.metadata.create_all(engine)
+    session = sessionmaker(bind=engine)
+    return session
 
 
 @pytest.fixture()
@@ -70,7 +83,7 @@ def add_batch_and_allocations(session):
     order_lines_added = set()
     batch_added = set()
 
-    def _add_batch_and_allocate_lines(batch: Dict, lines: List, unallocated_order_id =''):
+    def _add_batch_and_allocate_lines(batch: Dict, lines: List, unallocated_order_id=''):
         session.execute(text('insert into batches (reference, sku, quantity, eta) values'
                              f'("{batch["reference"]}","{batch["sku"]}",{batch["quantity"]},"{batch["eta"]}")'))
 
@@ -86,11 +99,11 @@ def add_batch_and_allocations(session):
         order_line_ids = []
         for order_id in order_lines_added:
             if order_id != unallocated_order_id:
-                order_line_ids.append(list(session.execute(text('SELECT id FROM order_lines WHERE order_id = :order_id'),
-                                                       {'order_id': order_id}))[0][0])
+                order_line_ids.append(
+                    list(session.execute(text('SELECT id FROM order_lines WHERE order_id = :order_id'),
+                                         {'order_id': order_id}))[0][0])
 
         for line_id in order_line_ids:
-
             session.execute(text('insert into allocations (batch_id, order_line_id) values'
                                  f'({batch_id},{line_id})'))
         session.commit()
@@ -100,7 +113,7 @@ def add_batch_and_allocations(session):
     for batch_id in batch_added:
         session.execute(
             text("DELETE FROM allocations WHERE batch_id=:batch_id"),
-            dict(batch_id= batch_id),
+            dict(batch_id=batch_id),
         )
         session.execute(
             text("DELETE FROM batches WHERE id=:batch_id"), dict(batch_id=batch_id),
