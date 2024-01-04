@@ -1,6 +1,10 @@
 import abc
+
 from domain.models.batch import Batch
 from domain.models.order_line import OrderLine
+from domain.models.product import Product
+
+from sqlalchemy.exc import NoResultFound
 
 '''
 UPDATES:
@@ -15,7 +19,7 @@ class AbstractRepository(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def get(self, reference):
+    def get(self, key):
         raise NotImplementedError
 
 
@@ -31,6 +35,23 @@ class BatchRepository(AbstractRepository):
 
     def list(self):
         return self.session.query(Batch).all()
+
+
+class ProductRepository(AbstractRepository):
+
+    def __init__(self, session):
+        self.session = session
+
+    def add(self, product: Product):
+        self.session.add(product)
+
+    def get(self, sku) -> Product | None:
+        try:
+            return self.session.query(Product).filter_by(sku=sku).one()
+        except NoResultFound:
+            return
+        except Exception as e:
+            raise e
 
 
 class OrderLineRepository(AbstractRepository):
