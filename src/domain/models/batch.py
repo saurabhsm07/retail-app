@@ -4,10 +4,6 @@ from typing import List, Optional
 from domain.models.order_line import OrderLine
 
 
-class OutOfStockException(Exception):
-    pass
-
-
 class Batch:
 
     def __init__(self, reference: str,
@@ -64,24 +60,3 @@ class Batch:
         if other.eta is None:
             return True
         return self.eta > other.eta
-
-
-def allocate(order_line: OrderLine, batches: List[Batch]) -> str:
-    """
-    method selects most suitable batch from a list of batches for a particular order line,
-    raises OutOfStock exception if order cannot be fulfilled
-    :param order_line:
-    :param batches:
-    :return: batch_ref (batch this particular order line is allocated to)
-    """
-    most_suitable_batch = None
-    for batch in sorted(batches):
-        if batch.can_allocate(order_line):
-            most_suitable_batch = batch
-            break
-
-    if most_suitable_batch is not None:
-        most_suitable_batch.allocate(order_line)
-        return most_suitable_batch.reference
-
-    raise OutOfStockException(f'Product {order_line.sku} of quantity {order_line.quantity} unavailable')
