@@ -1,4 +1,5 @@
 import time
+import uuid
 from typing import Dict, List
 
 import pytest
@@ -41,6 +42,22 @@ def get_session_obj():
     mapper_registry.metadata.create_all(engine)
     session = sessionmaker(bind=engine)
     return session
+
+
+def get_random_suffix():
+    return uuid.uuid4().hex[:6]
+
+
+def get_random_sku(name=""):
+    return f"sku-{name}-{get_random_suffix()}"
+
+
+def get_random_batch_ref(name=""):
+    return f"batch-{name}-{get_random_suffix()}"
+
+
+def get_random_order_id(name=""):
+    return f"order-{name}-{get_random_suffix()}"
 
 
 @pytest.fixture()

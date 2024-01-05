@@ -1,16 +1,37 @@
 import pytest
 from sqlalchemy import text
 
-from adapters.repository import BatchRepository, OrderLineRepository
+from adapters.repository import BatchRepository, OrderLineRepository, ProductRepository
 from domain.models.batch import Batch
 from domain.models.order_line import OrderLine
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 
+from domain.models.product import Product
+from tests.conftest import get_random_sku, get_random_batch_ref
+
+"""
+TODO: add fixture with inner method to cleanup test data objects
+      REVIEW tests 
+"""
+
+TEST_SKU = 'chair-1'
+
+
+def insert_product_record(session: Session):
+    session.execute((text('INSERT INTO PRODUCTS (sku) values'
+                          f'("{TEST_SKU}")')))
+    session.commit()
+    result = list(session.execute(text('SELECT id FROM products WHERE sku=:sku'),
+                                  dict(sku=TEST_SKU))
+                  )[0][0]
+
+    return result
+
 
 def insert_batch_record(session: Session, batch_ref: str):
     session.execute(text('insert into batches (reference, sku, quantity) values'
-                         f'("{batch_ref}","chair-1",50)'))
+                         f'("{batch_ref}","{TEST_SKU}",50)'))
     session.commit()
     result = list(session.execute(text('select id from batches where reference=:ref'),
                                   dict(ref=batch_ref))
@@ -31,6 +52,25 @@ def insert_order_line_record(session, order_id):
 def insert_allocation_records(session, batch_id, order_line_id):
     session.execute(text(f'insert into allocations(batch_id, order_line_id) values({batch_id},{order_line_id})'))
     session.commit()
+
+
+def test_product_repo_saves_product_batches_to_db(session):
+    test_sku = get_random_sku(name='chair')
+    batches = [Batch(reference=get_random_batch_ref("b1"),
+                     sku=test_sku, quantity=10, eta=datetime.today()),
+               Batch(reference=get_random_batch_ref("b2"),
+                     sku=test_sku, quantity=20, eta=datetime.today() + timedelta(days=5))]
+
+    p1 = Product(sku=test_sku, batches=batches)
+    product_repo = ProductRepository(session)
+    product_repo.add(p1)
+    session.commit()
+
+    batch_result = [x[0] for x in list(session.execute(text(f'SELECT reference FROM batches WHERE sku="{test_sku}"')))]
+
+    assert len(batch_result) == len(batches)
+    for batch in batches:
+        assert batch.reference in batch_result
 
 
 def test_batch_repo_can_add_batch(session):
