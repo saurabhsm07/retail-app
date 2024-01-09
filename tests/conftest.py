@@ -60,6 +60,42 @@ def get_random_order_id(name=""):
     return f"order-{name}-{get_random_suffix()}"
 
 
+def insert_product_record(session, sku: str):
+    session.execute((text('INSERT INTO PRODUCTS (sku, version) values'
+                          f'("{sku}",0)')))
+    session.commit()
+    result = list(session.execute(text('SELECT id FROM products WHERE sku=:sku'),
+                                  dict(sku=sku))
+                  )[0][0]
+
+    return result
+
+
+def insert_batch_record(session, batch_ref: str, sku: str, qty):
+    session.execute(text('insert into batches (reference, sku, quantity) values'
+                         f'("{batch_ref}","{sku}",{qty})'))
+    session.commit()
+    result = list(session.execute(text('select id from batches where reference=:ref'),
+                                  dict(ref=batch_ref))
+                  )[0][0]
+    return result
+
+
+def insert_order_line_record(session, order_id, sku, qty):
+    session.execute(text('insert into order_lines (sku, quantity, order_id) values'
+                         f'("{sku}",{qty},"{order_id}")'
+                         ))
+    session.commit()
+    result = list(session.execute(text('select id from order_lines where order_id=:order_id'),
+                                  dict(order_id=order_id)))[0][0]
+    return result
+
+
+def insert_allocation_records(session, batch_id, order_line_id):
+    session.execute(text(f'insert into allocations(batch_id, order_line_id) values({batch_id},{order_line_id})'))
+    session.commit()
+
+
 @pytest.fixture()
 def add_stock(session):
     batches_added = set()
