@@ -1,14 +1,12 @@
+import pytest
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from domain.models.order_line import OrderLine
-from service_layer.unit_of_work import BatchRepoUnitOfWork
-
-
-def insert_batch_in_db(session: Session, reference, sku, quantity, eta):
-    session.execute(text('INSERT INTO batches (reference, sku, quantity, eta)'
-                         ' VALUES (:ref, :sku, :qty, :eta)'), dict(ref=reference, sku=sku, qty=quantity, eta=eta))
-    session.commit()
+from domain.models.product import allocate as allocate_line
+from service_layer.unit_of_work import ProductRepoUnitOfWork
+from tests.conftest import get_random_batch_ref, get_random_sku, get_random_order_id, insert_batch_record, \
+    insert_product_record
 
 
 def get_allocated_batch_ref(session: Session, orderid, sku):
@@ -24,15 +22,20 @@ def get_allocated_batch_ref(session: Session, orderid, sku):
     return batch_ref
 
 
-def test_uow_can_retrieve_a_batch_and_allocate_to_it(session_factory):
+def test_uow_can_retrieve_a_product_and_allocate_an_order_line(session_factory):
     session = session_factory()
-    insert_batch_in_db(session, 'b1', 'workbench', 100, None)
+    test_batch_ref = get_random_batch_ref()
+    test_sku = get_random_sku()
+    test_order_id = get_random_order_id()
 
-    with BatchRepoUnitOfWork(session_factory) as uow:
-        batch = uow.batches.get('b1')
-        batch.allocate(OrderLine(order_id='44', sku='workbench', quantity=5))
+    insert_product_record(session, test_sku)
+    insert_batch_record(session, test_batch_ref, test_sku, 100)
+
+    with ProductRepoUnitOfWork(session_factory) as uow:
+        product = uow.products.get(test_sku)
+        allocate_line(OrderLine(order_id=test_order_id, sku=test_sku, quantity=5), product)
         uow.commit()
 
-    batch_ref = get_allocated_batch_ref(session, '44', 'workbench')
+    batch_ref = get_allocated_batch_ref(session, test_order_id, test_sku)
 
-    assert batch_ref == 'b1'
+    assert batch_ref == test_batch_ref
