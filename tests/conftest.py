@@ -103,6 +103,10 @@ def add_stock(session):
 
     def _add_stock(batches):
         for ref, sku, qty, eta in batches:
+            if sku not in skus_added:
+                session.execute(text('INSERT INTO PRODUCTS (sku, version) values'
+                                     f'("{sku}",0)'))
+
             session.execute(text('insert into batches (reference, sku, quantity, eta) values'
                                  f'("{ref}","{sku}",{qty},"{eta}")'))
 
@@ -127,22 +131,29 @@ def add_stock(session):
         session.execute(
             text("DELETE FROM order_lines WHERE sku=:sku"), dict(sku=sku),
         )
+        session.execute(
+            text("DELETE FROM products WHERE sku=:sku"), dict(sku=sku),
+        )
 
-        session.commit()
+    session.commit()
 
 
 @pytest.fixture()
-def add_batch_and_allocations(session):
+def add_product_stock_and_allocations(session):
+    # TODO: make batches a list of dicts rather than a single object
     order_lines_added = set()
     batch_added = set()
+    sku_added = set()
 
-    def _add_batch_and_allocate_lines(batch: Dict, lines: List, unallocated_order_id=''):
+    def _add_batch_and_allocate_lines(batch: Dict, lines: List):
+        session.execute(text('INSERT INTO PRODUCTS (sku, version) values'
+                             f'("{batch["sku"]}",0)'))
+
         session.execute(text('insert into batches (reference, sku, quantity, eta) values'
                              f'("{batch["reference"]}","{batch["sku"]}",{batch["quantity"]},"{batch["eta"]}")'))
 
-        batch_id = list(session.execute(text('SELECT id from batches'
-                                             f' where reference =:batch_ref'), dict(batch_ref=batch['reference'])))[0][
-            0]
+        [[batch_id]] = session.execute(text('SELECT id from batches'
+                                            f' where reference =:batch_ref'), dict(batch_ref=batch['reference']))
         batch_added.add(batch_id)
         for order_id, sku, qty in lines:
             session.execute(text('insert into order_lines (order_id, sku, quantity) values'
@@ -151,10 +162,9 @@ def add_batch_and_allocations(session):
 
         order_line_ids = []
         for order_id in order_lines_added:
-            if order_id != unallocated_order_id:
-                order_line_ids.append(
-                    list(session.execute(text('SELECT id FROM order_lines WHERE order_id = :order_id'),
-                                         {'order_id': order_id}))[0][0])
+            order_line_ids.append(
+                list(session.execute(text('SELECT id FROM order_lines WHERE order_id = :order_id'),
+                                     {'order_id': order_id}))[0][0])
 
         for line_id in order_line_ids:
             session.execute(text('insert into allocations (batch_id, order_line_id) values'
@@ -162,6 +172,12 @@ def add_batch_and_allocations(session):
         session.commit()
 
     yield _add_batch_and_allocate_lines
+
+    for sku in sku_added:
+        session.execute(
+            text("DELETE FROM products WHERE sku=:sku"),
+            dict(sku=sku),
+        )
 
     for batch_id in batch_added:
         session.execute(

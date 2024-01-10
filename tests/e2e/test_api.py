@@ -28,13 +28,13 @@ def test_valid_allocation_request_returns_201_and_allocated_batch_reference(add_
     assert res.json()['batch_ref'] == early_batch
 
 
-def test_valid_de_allocation_request_returns_204(add_batch_and_allocations):
+def test_valid_de_allocation_request_returns_204(add_product_stock_and_allocations):
     sku_1 = get_random_sku('1')
 
     batch = {
         'reference': get_random_batch_ref('b1'),
         'sku': sku_1,
-        'quantity': 54,
+        'quantity': 94,
         'eta': '2023-01-06'
     }
     deallocated_order_line_id = get_random_order_id('3')
@@ -43,14 +43,17 @@ def test_valid_de_allocation_request_returns_204(add_batch_and_allocations):
         (get_random_order_id('2'), sku_1, 10),
         (deallocated_order_line_id, sku_1, 41),
     ]
-    add_batch_and_allocations(batch, order_lines)
+    add_product_stock_and_allocations(batch, order_lines)
 
-    payload = {'batch_id': batch['reference'], 'order_id': deallocated_order_line_id}
+    payload = {'batch_ref': batch['reference'],
+               'order_id': deallocated_order_line_id,
+               'sku': sku_1,
+               'qty': 41}
     res = requests.get(f'{get_api_url()}/deallocate', payload)
     assert res.status_code == 204
 
 
-def test_invalid_de_allocation_request_returns_200(add_batch_and_allocations):
+def test_invalid_de_allocation_request_returns_200(add_product_stock_and_allocations):
     sku_1 = get_random_sku('1')
 
     batch = {
@@ -63,17 +66,20 @@ def test_invalid_de_allocation_request_returns_200(add_batch_and_allocations):
     order_lines = [
         (get_random_order_id('1'), sku_1, 10),
         (get_random_order_id('2'), sku_1, 10),
-        (unallocated_order_id, sku_1, 41),
     ]
-    add_batch_and_allocations(batch, order_lines, unallocated_order_id)
+    add_product_stock_and_allocations(batch, order_lines)
 
-    payload = {'batch_id': batch['reference'], 'order_id': unallocated_order_id}
+    payload = {'batch_ref': batch['reference'],
+               'order_id': unallocated_order_id,
+               'sku': sku_1,
+               'qty': 41}
+
     res = requests.get(f'{get_api_url()}/deallocate', payload)
     assert res.status_code == 200 and res.json()['message'] == 'cannot deallocate unallocated order line'
 
 
 # @pytest.mark.usefixtures('restart_api')
-def test_invalid_request_returns_400_and_error_message(add_stock):
+def test_invalid_allocation_request_returns_400_and_error_message(add_stock):
     sku_1 = get_random_sku('1')
     sku_2 = get_random_sku('2')
     invalid_sku = get_random_sku('INVALID')
