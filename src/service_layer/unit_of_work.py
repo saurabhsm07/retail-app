@@ -18,8 +18,7 @@ UPDATES:
 
 # TODO - maybe define a separate Abstract base class which has the general methods
 #  and that is inherited by our AOW repo specific classes if I am set on 1 AOW to 1 Repo approach
-class AbstractBatchUnitOfWork(abc.ABC):
-    batches: repository.AbstractRepository
+class AbstractUnitOfWork(abc.ABC):
 
     def __exit__(self, *args):
         self.rollback()
@@ -41,14 +40,14 @@ DEFAULT_SESSION_FACTORY = sessionmaker(bind=create_engine(
 ))
 
 
-class BatchRepoUnitOfWork(AbstractBatchUnitOfWork):
+class ProductRepoUnitOfWork(AbstractUnitOfWork):
 
     def __init__(self, session_factory=DEFAULT_SESSION_FACTORY):
         self._session_factory = session_factory
 
     def __enter__(self):
         self.session = self._session_factory()
-        self.batches = repository.BatchRepository(self.session)
+        self.products = repository.ProductRepository(self.session)
         return super().__enter__()
 
     def __exit__(self, *args):
