@@ -1,14 +1,14 @@
+import threading
+import time
+
+import pytest
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from domain.models.order_line import OrderLine
-from service_layer.unit_of_work import BatchRepoUnitOfWork
-
-
-def insert_batch_in_db(session: Session, reference, sku, quantity, eta):
-    session.execute(text('INSERT INTO batches (reference, sku, quantity, eta)'
-                         ' VALUES (:ref, :sku, :qty, :eta)'), dict(ref=reference, sku=sku, qty=quantity, eta=eta))
-    session.commit()
+from service_layer.unit_of_work import ProductRepoUnitOfWork
+from tests.conftest import get_random_batch_ref, get_random_sku, get_random_order_id, insert_batch_record, \
+    insert_product_record
 
 
 def get_allocated_batch_ref(session: Session, orderid, sku):
@@ -24,15 +24,63 @@ def get_allocated_batch_ref(session: Session, orderid, sku):
     return batch_ref
 
 
-def test_uow_can_retrieve_a_batch_and_allocate_to_it(session_factory):
+def test_uow_can_retrieve_a_product_and_allocate_an_order_line(session_factory):
     session = session_factory()
-    insert_batch_in_db(session, 'b1', 'workbench', 100, None)
+    test_batch_ref = get_random_batch_ref()
+    test_sku = get_random_sku()
+    test_order_id = get_random_order_id()
 
-    with BatchRepoUnitOfWork(session_factory) as uow:
-        batch = uow.batches.get('b1')
-        batch.allocate(OrderLine(order_id='44', sku='workbench', quantity=5))
+    insert_product_record(session, test_sku)
+    insert_batch_record(session, test_batch_ref, test_sku, 100)
+
+    with ProductRepoUnitOfWork(session_factory) as uow:
+        product = uow.products.get(test_sku)
+        product.allocate(OrderLine(order_id=test_order_id, sku=test_sku, quantity=5))
         uow.commit()
 
-    batch_ref = get_allocated_batch_ref(session, '44', 'workbench')
+    batch_ref = get_allocated_batch_ref(session, test_order_id, test_sku)
 
-    assert batch_ref == 'b1'
+    assert batch_ref == test_batch_ref
+
+
+def try_line_allocation(session_factory, order_line, exceptions) -> None:
+    try:
+        with ProductRepoUnitOfWork(session_factory) as uow:
+            product = uow.products.get(order_line.sku)
+            product.allocate(order_line)
+            time.sleep(3)
+            uow.commit()
+
+    except Exception as e:
+        exceptions.append(str(e))
+        raise e
+
+
+@pytest.mark.skip("To be executed once postgres integration is completed")
+def test_two_concurrent_allocation_update_requests_on_the_same_product_are_not_allowed(session_factory):
+    session = session_factory()
+    test_batch_ref = get_random_batch_ref()
+    test_sku = get_random_sku()
+    test_order_id_1 = get_random_order_id()
+    test_order_id_2 = get_random_order_id()
+
+    insert_product_record(session, test_sku)
+    insert_batch_record(session, test_batch_ref, test_sku, 100)
+
+    exceptions_list = []
+    attempt_allocation_line_1 = lambda: try_line_allocation(session_factory, OrderLine(test_order_id_1, test_sku, 5),
+                                                            exceptions_list)
+    attempt_allocation_line_2 = lambda: try_line_allocation(session_factory, OrderLine(test_order_id_2, test_sku, 5),
+                                                            exceptions_list)
+
+    t1 = threading.Thread(target=attempt_allocation_line_1)
+    t2 = threading.Thread(target=attempt_allocation_line_2)
+
+    t1.start()
+    t2.start()
+    t1.join()
+    t2.join()
+
+    [product] = list(session.execute(text('SELECT sku, version from PRODUCTS where sku=:sku'), dict(sku=test_sku)))
+    assert len(exceptions_list) > 0
+    assert product.version == 1

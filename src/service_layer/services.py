@@ -2,9 +2,9 @@ from typing import List, Optional
 from datetime import date
 from domain.models.batch import Batch
 from domain.models.order_line import OrderLine
-from domain.models.batch import allocate as allocate_line
+from domain.models.product import Product
 from adapters.repository import AbstractRepository
-from service_layer.unit_of_work import AbstractBatchUnitOfWork
+from service_layer.unit_of_work import AbstractUnitOfWork
 
 '''
 UPDATES:
@@ -23,19 +23,25 @@ def is_valid_sku(sku, batches: List[Batch]):
         return False
 
 
-def insert_batch(batch_aow: AbstractBatchUnitOfWork, reference: str, sku: str, quantity: int, eta: Optional[date]):
-    '''
-    :param batch_aow: batch unit  of work object
-    :param reference:
-    :param sku:
-    :param quantity:
-    :param eta:
+def insert_batch(product_uow: AbstractUnitOfWork, reference: str, sku: str, quantity: int, eta: Optional[date]):
+    """
+    :param product_uow: product unit of work object
+    :param reference: batch unique reference
+    :param sku: stock keeping unit of this batch
+    :param quantity: quantity in this batch
+    :param eta: time this batch will be delivered to the warehouse
     :return: boolean True: inserted, False : didn't insert
-    '''
+    """
     try:
-        with batch_aow:
-            batch_aow.batches.add(Batch(reference=reference, sku=sku, quantity=quantity, eta=eta))
-            batch_aow.commit()
+        batch_obj = Batch(reference, sku, quantity, eta)
+        with product_uow:
+            product = product_uow.products.get(sku)
+            if product:
+                product.batches.append(batch_obj)
+            else:
+                product_uow.products.add(Product(sku, [batch_obj]))
+
+            product_uow.commit()
 
         return True
 
@@ -52,37 +58,38 @@ def allocate(order_line: OrderLine, repository: AbstractRepository, session):
     :param session: database session object
     :return:
     """
-    if not is_valid_sku(order_line.sku, repository.list()):
-        raise InvalidSkuException(f'Invalid sku : {order_line.sku}')
+    product = repository.get(order_line.sku)
 
+    if not product:
+        raise InvalidSkuException(f'Invalid sku : {order_line.sku}')
     else:
-        batch_ref = allocate_line(order_line=order_line, batches=repository.list())
+        batch_ref = product.allocate(order_line=order_line)
         session.commit()
 
-        return batch_ref
+    return batch_ref
 
 
-def deallocate(order_id: str, batch_ref: str, batch_repository: AbstractRepository, order_line_repo: AbstractRepository,
+def deallocate(batch_ref: str,
+               order_line: OrderLine,
+               product_repository: AbstractRepository,
                session):
-    '''
+    """
     deallocate method to remove an allocated line from a batch
-    :param order_id:
     :param batch_ref:
-    :param batch_repository: batch repository object to fetch necessary batch from DB
-    :param order_line_repo: order line repository object to fetch order line data from DB
+    :param order_line:
+    :param product_repository: product repository object to fetch necessary batch from DB
     :param session:
-    :return:
-    '''
+    :return: status of de-allocation request
+    """
 
     try:
 
-        batch = batch_repository.get(batch_ref)
-        order_line = order_line_repo.get_by_order_id_and_sku(order_id, batch.sku)
+        batch = next(batch for batch in product_repository.get(order_line.sku).batches if batch.reference == batch_ref)
         status = batch.deallocate(order_line)
 
         session.commit()
 
-        return status, order_line.quantity
+        return status
 
     except Exception as e:
         raise e
