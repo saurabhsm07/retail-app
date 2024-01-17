@@ -4,7 +4,6 @@ from domain.models.batch import Batch
 from domain.models.order_line import OrderLine
 from adapters.repository import AbstractRepository
 from domain.models.product import Product
-from domain.models.product import allocate as allocate_line
 from service_layer.services import allocate, InvalidSkuException, deallocate, insert_batch
 from service_layer.unit_of_work import AbstractUnitOfWork
 from tests.conftest import get_random_sku, get_random_batch_ref
@@ -71,9 +70,9 @@ def test_service_successfully_deallocates_order_line_from_product():
 
     product = Product(test_sku, [Batch(test_batch_ref, test_sku, 100, None)])
 
-    _ = (allocate_line(order_line_1, product),
-         allocate_line(order_line_2, product),
-         allocate_line(order_line_3, product))
+    _ = (product.allocate(order_line_1),
+         product.allocate(order_line_2),
+         product.allocate(order_line_3))
 
     product_repo = FakeProductRepository([product])
 
