@@ -3,7 +3,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from adapters import orm
-from adapters.repository import BatchRepository, OrderLineRepository, ProductRepository
+from adapters.repository import ProductRepository
 from domain.models.order_line import OrderLine
 from domain.models.product import OutOfStockException
 from service_layer.services import allocate, InvalidSkuException, deallocate

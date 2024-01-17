@@ -23,20 +23,6 @@ class AbstractRepository(abc.ABC):
         raise NotImplementedError
 
 
-class BatchRepository(AbstractRepository):
-    def __init__(self, session):
-        self.session = session
-
-    def add(self, batch):
-        self.session.add(batch)
-
-    def get(self, reference):
-        return self.session.query(Batch).filter_by(reference=reference).one()
-
-    def list(self):
-        return self.session.query(Batch).all()
-
-
 class ProductRepository(AbstractRepository):
 
     def __init__(self, session):
@@ -52,17 +38,3 @@ class ProductRepository(AbstractRepository):
             return
         except Exception as e:
             raise e
-
-
-class OrderLineRepository(AbstractRepository):
-    def __init__(self, session):
-        self.session = session
-
-    def add(self, order_line):
-        self.session.add(order_line)
-
-    def get(self, order_id):
-        return self.session.query(OrderLine).filter_by(order_id=order_id).all()
-
-    def get_by_order_id_and_sku(self, order_id, sku) -> OrderLine:
-        return self.session.query(OrderLine).filter_by(order_id=order_id, sku=sku).one()
