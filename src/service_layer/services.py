@@ -2,7 +2,7 @@ from typing import List, Optional
 from datetime import date
 from domain.models.batch import Batch
 from domain.models.order_line import OrderLine
-from domain.models.product import allocate as allocate_line, Product
+from domain.models.product import Product
 from adapters.repository import AbstractRepository
 from service_layer.unit_of_work import AbstractUnitOfWork
 
@@ -63,7 +63,7 @@ def allocate(order_line: OrderLine, repository: AbstractRepository, session):
     if not product:
         raise InvalidSkuException(f'Invalid sku : {order_line.sku}')
     else:
-        batch_ref = allocate_line(order_line=order_line, product=product)
+        batch_ref = product.allocate(order_line=order_line)
         session.commit()
 
     return batch_ref
