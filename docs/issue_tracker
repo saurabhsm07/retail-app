@@ -17,3 +17,6 @@ SOLUTION: found a workaround for it check .scripts/tests.sh file and readME for 
 7. No Dev notes collected as part of Aggregate pattern and consistency boundaries
 
 8. Exhaustive unit tests for UOW required.
+
+9. At present we have not integrated any database with our project and that handicaps us when dealing / testing
+    race conditions / concurrency control code.
