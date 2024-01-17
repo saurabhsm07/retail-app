@@ -15,3 +15,5 @@ SOLUTION: found a workaround for it check .scripts/tests.sh file and readME for 
 6. No test object deletion logic implemented as part of test_repository.
 
 7. No Dev notes collected as part of Aggregate pattern and consistency boundaries
+
+8. Exhaustive unit tests for UOW required.
