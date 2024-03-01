@@ -1,0 +1,8 @@
+FROM postgres:16
+
+ENV POSTGRES_USER=root_user
+ENV POSTGRES_PASSWORD=root_pwd
+ENV POSTGRES_DB=config_db
+
+
+
