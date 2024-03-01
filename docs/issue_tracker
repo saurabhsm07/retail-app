@@ -20,3 +20,5 @@ SOLUTION: found a workaround for it check .scripts/tests.sh file and readME for 
 
 9. At present we have not integrated any database with our project and that handicaps us when dealing / testing
     race conditions / concurrency control code.
+    UPDATE: Integrated postgres DB but these tests still fail. **
+

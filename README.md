@@ -27,11 +27,23 @@ FLASK_APP=src/entrypoints/flask_app.py
 flask run --host=0.0.0.0 --port=80
 ```
 ### Running Test Suite:  
-- Option 1: Start a Flask App server as in **INITIALIZATION** steps and run the test suite manually using pytest.
-- Option 2: Follow the **SETUP** Steps and run using docker container and make file.
+- Option 1: local system run
+  - Create a python virtual env with packages detailed in `Pipfile`
+  - Start a Flask App server with commands detailed  **INITIALIZATION** steps and run the test suite locally using pytest commands.
+  - Additional environment variables that need to be specified:  
+    - `ENV=dev or local` : tests to be executed in LOCAL mode (against SQLITE DB) or DEV mode (POSTGRES DB).
+    - `DB_HOST=<HOST-NAME>` : host name of the database server, in case of ENV=DEV.
+- Option 2: Follow the **SETUP** Steps and run using docker container and use command `make run-tests`.
+  - `ENV=dev or local` : tests to be executed in LOCAL mode (against SQLITE DB) or DEV mode (POSTGRES DB).
 
-### ISSUES:  
+### ISSUES 
+- Some tests are not atomic in nature. Mostly ORM and Repository tests and create junk data.
+- Race condition / Concurrency tests fail.
+
+
+### DISCLAIMERS:  
 - Running the docker file will not automate a container and start a web application.
+
 
 ### UPDATES:
 
@@ -41,4 +53,6 @@ flask run --host=0.0.0.0 --port=80
 ### Workarounds:
 
 - Suffixed `Flask RUN` command with `&` in **tests.sh** bash script to avoid blocking current run on flask server start.
-    - NOTE: Delete the local sql lite db file manually before running unit tests against the docker container. 
+    - NOTE: Delete the local sql lite db file manually before running unit tests against the docker container.
+
+- ORM tests are basic in nature and fail on foreign key constraints. As a result they are skipped when executin in DEV (with postgre DB)
