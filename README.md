@@ -55,4 +55,4 @@ flask run --host=0.0.0.0 --port=80
 - Suffixed `Flask RUN` command with `&` in **tests.sh** bash script to avoid blocking current run on flask server start.
     - NOTE: Delete the local sql lite db file manually before running unit tests against the docker container.
 
-- ORM tests are basic in nature and fail on foreign key constraints. As a result they are skipped when executin in DEV (with postgre DB)
+- ORM tests are basic in nature and fail on foreign key constraints. As a result they are skipped when executing in DEV (with postgre DB)

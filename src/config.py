@@ -12,8 +12,9 @@ def get_postgres_uri():
 
 
 def get_db_url():
-    env = os.environ.get('ENV', 'local')
-    if env.lower() == 'local':
+    test_env = os.environ.get('ENV', 'LOCAL').upper()
+
+    if test_env == 'LOCAL':
         db_path = str(Path(__file__).parent.parent) + "/local/db/lite.db"
         if os.path.exists(db_path):
             os.remove(db_path)
