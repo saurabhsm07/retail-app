@@ -1,3 +1,4 @@
+import os
 import threading
 import time
 
@@ -56,7 +57,9 @@ def try_line_allocation(session_factory, order_line, exceptions) -> None:
         raise e
 
 
-@pytest.mark.skip("To be executed once postgres integration is completed")
+@pytest.mark.skipif(os.environ.get('ENV').lower() != 'dev',
+                    reason="To be executed once postgres integration is completed")
+@pytest.mark.only
 def test_two_concurrent_allocation_update_requests_on_the_same_product_are_not_allowed(session_factory):
     session = session_factory()
     test_batch_ref = get_random_batch_ref()

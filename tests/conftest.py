@@ -62,7 +62,7 @@ def get_random_order_id(name=""):
 
 def insert_product_record(session, sku: str):
     session.execute((text('INSERT INTO PRODUCTS (sku, version) values'
-                          f'("{sku}",0)')))
+                          f'(\'{sku}\',0)')))
     session.commit()
     result = list(session.execute(text('SELECT id FROM products WHERE sku=:sku'),
                                   dict(sku=sku))
@@ -73,7 +73,7 @@ def insert_product_record(session, sku: str):
 
 def insert_batch_record(session, batch_ref: str, sku: str, qty):
     session.execute(text('insert into batches (reference, sku, quantity) values'
-                         f'("{batch_ref}","{sku}",{qty})'))
+                         f'(\'{batch_ref}\',\'{sku}\',{qty})'))
     session.commit()
     result = list(session.execute(text('select id from batches where reference=:ref'),
                                   dict(ref=batch_ref))
@@ -83,7 +83,7 @@ def insert_batch_record(session, batch_ref: str, sku: str, qty):
 
 def insert_order_line_record(session, order_id, sku, qty):
     session.execute(text('insert into order_lines (sku, quantity, order_id) values'
-                         f'("{sku}",{qty},"{order_id}")'
+                         f'(\'{sku}\',{qty},\'{order_id}\')'
                          ))
     session.commit()
     result = list(session.execute(text('select id from order_lines where order_id=:order_id'),
@@ -105,10 +105,10 @@ def add_stock(session):
         for ref, sku, qty, eta in batches:
             if sku not in skus_added:
                 session.execute(text('INSERT INTO PRODUCTS (sku, version) values'
-                                     f'("{sku}",0)'))
+                                     f'(\'{sku}\',0)'))
 
             session.execute(text('insert into batches (reference, sku, quantity, eta) values'
-                                 f'("{ref}","{sku}",{qty},"{eta}")'))
+                                 f'(\'{ref}\',\'{sku}\',{qty},\'{eta}\')'))
 
             batches_added.add(list(session.execute(text('select id from batches where sku=:sku and reference=:ref'),
                                                    dict(sku=sku, ref=ref)))[0][0])
@@ -147,17 +147,17 @@ def add_product_stock_and_allocations(session):
 
     def _add_batch_and_allocate_lines(batch: Dict, lines: List):
         session.execute(text('INSERT INTO PRODUCTS (sku, version) values'
-                             f'("{batch["sku"]}",0)'))
+                             f'(\'{batch["sku"]}\',0)'))
 
         session.execute(text('insert into batches (reference, sku, quantity, eta) values'
-                             f'("{batch["reference"]}","{batch["sku"]}",{batch["quantity"]},"{batch["eta"]}")'))
+                             f'(\'{batch["reference"]}\',\'{batch["sku"]}\',{batch["quantity"]},\'{batch["eta"]}\')'))
 
         [[batch_id]] = session.execute(text('SELECT id from batches'
                                             f' where reference =:batch_ref'), dict(batch_ref=batch['reference']))
         batch_added.add(batch_id)
         for order_id, sku, qty in lines:
             session.execute(text('insert into order_lines (order_id, sku, quantity) values'
-                                 f'("{order_id}","{sku}",{qty})'))
+                                 f'(\'{order_id}\',\'{sku}\',{qty})'))
             order_lines_added.add(order_id)
 
         order_line_ids = []
